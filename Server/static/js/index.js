@@ -1,9 +1,10 @@
-
 var messagesFromServer;
+
+//Main
 getFromServerJson();
 
 async function getFromServerJson() {
-    const jsonPromise = await fetch("./fakeDataFromServer/data-from-server.json");
+    const jsonPromise = await fetch("./data.json");
     messagesFromServer = await jsonPromise.json();
     
     //Calc interval out of total messages time
@@ -25,7 +26,7 @@ async function messsagesLoop() {
 }
 
 function displayMessage(message) {
-    $("#template").load(message.templateSrc, () => {
+    $("#template").load(message.template, () => {
         $("#title").html(message.title);
         $("#textFields").html(message.textFields);
 
@@ -37,6 +38,4 @@ function displayMessage(message) {
         $("#images").html(imagesElements)
     });
 }
-
 const sleep = (seconds) =>  new Promise(resolve => setTimeout(resolve, seconds * 100));
-
