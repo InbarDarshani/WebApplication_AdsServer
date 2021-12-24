@@ -1,3 +1,5 @@
+//Database schemes setup module
+
 //MongoDB setup
 var Schema =  require('mongoose').Schema;
 

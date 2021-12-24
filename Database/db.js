@@ -12,7 +12,7 @@ var Screen;
 var Client;
 
 var { messagesSchema, screensSchema, clientsSchema } = require("./schemas.js");
-var { messagesData, screensData } = require("./data.js");
+var { messagesData, screensData } = require("./init_data.js");
 
 //DB methods
 exports.connectToDB = async function connectToDB() {

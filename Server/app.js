@@ -7,7 +7,7 @@ const path = require("path");
 const staticSourcesFolder = path.join(process.cwd(), "Server", "static");           //absolute path for static folder
 const dataFolder = path.join(process.cwd(), "Database", "data");                    //absolute path for data folder
 //Database setup
-const db = require("../Database/db_ads.js");
+const db = require("../Database/db.js");
 
 //___________________________________________________________________________________________
 

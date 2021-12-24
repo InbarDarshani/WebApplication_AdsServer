@@ -1,3 +1,5 @@
+//Initial data module
+
 exports.messagesData = [{
     messageName: "message1",
     screens: [1, 2, 3],
