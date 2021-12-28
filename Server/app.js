@@ -13,7 +13,6 @@ const dataFolder = path.join(process.cwd(), "Database", "data");                
 const db = require("../Database/db.js");
 const { messagesSchema } = require("../Database/schemas.js");
 
-
 //___________________________________________________________________________________________
 
 //Function to handle a client's connection ans disconnection
@@ -25,47 +24,43 @@ io.on("connection", (socket) => {
     socket.on('disconnect', () => {
         console.log("Client disconnect at screen " + socket.handshake.query.screenNumber + " with socket id " + socket.client.id);
         //handle client in db
-        db.handleClient(socket.handshake.query.screenNumber);
+        db.handleClient(socket.handshake.query.screenNumber, "Disconnected");
     });
 });
 
 
-//Functions to handle a screen's first request
-app.get("/:screen/", async (request, response) => {
-    
-    //Ignore favicon request
-    if(request.url == '/favicon.ico') return;
 
+//Function to handle a screen's first request
+app.get("/:screen", async (request, response) => {
+    //Ignore favicon request
+    if (request.url == '/favicon.ico') return;
     //handle screen in db
-    var result = await db.handleScreen(request.params.screen);
-    if (!result.ok) {
-        response.send(result.info);
-        return;
-    }
-    response.sendFile(path.join(staticSourcesFolder, "index.html"));
+    await db.handleScreen(request.params.screen);
+    response.sendFile(path.join(staticSourcesFolder, "screen.html"));
 });
 
 //Function to handle static files requests - js and css
-app.get("/:screen/static/:folder/:srcFile", (request, response) => {
+app.get("*/static/:folder/:srcFile", (request, response) => {
     response.sendFile(path.join(staticSourcesFolder, request.params.folder, request.params.srcFile));
+});
+//Function to handle data files requests - templates and images 
+app.get("*/data/:folder/:dataFile", (request, response) => {
+    response.sendFile(path.join(dataFolder, request.params.folder, request.params.dataFile));
 });
 
 //Function to handle screen's messages fetch request - json
 app.get("/:screen/data.json", async (request, response) => {
-    var result = await db.handleScreen(request.params.screen);
-    response.send(result.info);
+    var data = await db.handleScreen(request.params.screen);
+    response.json(data);
 });
 
-//Function to handle data files requests - templates and images 
-app.get("/:screen/data/:folder/:dataFile", (request, response) => {
-    response.sendFile(path.join(dataFolder, request.params.folder, request.params.dataFile));
-});
+
 
 //Main
 main();
 async function main() {
     await db.connectToDB();
-    await db.initializeDB();
+    //await db.initializeDB();
     httpServer.listen(port);
     console.log("Waiting for clients");
 }

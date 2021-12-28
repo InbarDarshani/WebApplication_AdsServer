@@ -1,14 +1,16 @@
 const screenNumber = window.location.pathname.split("/")[1];
 const url = window.location.origin;
-const socket = io(url,{ query: {
-    "screenNumber": screenNumber
-}});
+const socket = io(url, {
+    query: {
+        "screenNumber": screenNumber
+    }
+});
 
 var messagesFromServer;
 getFromServerJson();
 
 async function getFromServerJson() {
-    const jsonPromise = await fetch("./data.json");
+    const jsonPromise = await fetch("/" + screenNumber + "/data.json");
     messagesFromServer = await jsonPromise.json();
 
     //Calc interval out of total messages time
@@ -18,8 +20,13 @@ async function getFromServerJson() {
     }
 
     //Display messages loop
-    messsagesLoop();
-    setInterval(messsagesLoop, interval * 100);
+    if (messagesFromServer.length !== 0) {
+        messsagesLoop();
+        setInterval(messsagesLoop, interval * 100);
+    }
+    else{
+        $(".header").html("No Messages found for this Screen");
+    }
 }
 
 async function messsagesLoop() {
@@ -30,6 +37,7 @@ async function messsagesLoop() {
 }
 
 function displayMessage(message) {
+    $(".header").hide();
     $("#template").load(message.template, () => {
         $("#title").html(message.title);
         $("#textFields").html(message.textFields);

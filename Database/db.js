@@ -65,21 +65,17 @@ exports.handleScreen = async (screenNumber) => {
     if (!exists) {
         Screen.create({ screenNumber: screenNumber });
         console.log("New Screen added");
-        return ({ ok: false, info: "New Screen Added" });
+        return [];
     }
 
     //Get screen's messages
     var quary = await Message.find({ screens: screenNumber });
     var data = quary.map(doc => doc.toJSON());
 
-    if (data.length == 0) {
-        return ({ ok: false, info: "No Messages found for this Screen" });
-    }
-
-    return { ok: true, info: data };
+    return data;
 }
 
-exports.handleClient = async (screenNumber) => {
+exports.handleClient = async (screenNumber, status = "Connected") => {
     var exists = await Client.exists({ screenNumber: screenNumber });
 
     //Create client
@@ -87,12 +83,10 @@ exports.handleClient = async (screenNumber) => {
         Client.create({ screenNumber: screenNumber, status: "Connected" });
         console.log("New Client added");
         return;
-        //return ({ ok: false, info: "New Client Added" });
     }
 
     //Change existing client's status
-    await Client.findOneAndUpdate({ screenNumber: screenNumber }, { status: "Connected", timeOfLastConnection: new Date() });
-    return;
+    await Client.findOneAndUpdate({ screenNumber: screenNumber }, { status: status, timeOfLastConnection: new Date() });
 }
 
 
