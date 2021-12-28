@@ -104,7 +104,7 @@ exports.messagesData = [{
 ];
 
 exports.screensData = [
-	{ screenNumber: 1 },
-	{ screenNumber: 2 },
-	{ screenNumber: 3 }
+    { screenNumber: 1 },
+    { screenNumber: 2 },
+    { screenNumber: 3 }
 ];

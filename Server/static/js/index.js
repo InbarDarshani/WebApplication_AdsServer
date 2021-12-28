@@ -1,21 +1,25 @@
-var messagesFromServer;
+const screenNumber = window.location.pathname.split("/")[1];
+const url = window.location.origin;
+const socket = io(url,{ query: {
+    "screenNumber": screenNumber
+}});
 
-//Main
+var messagesFromServer;
 getFromServerJson();
 
 async function getFromServerJson() {
     const jsonPromise = await fetch("./data.json");
     messagesFromServer = await jsonPromise.json();
-    
+
     //Calc interval out of total messages time
     let interval = 0;
     for (const message of messagesFromServer) {
         interval += message.visableFor;
     }
-    
+
     //Display messages loop
     messsagesLoop();
-    setInterval(messsagesLoop, interval*100);
+    setInterval(messsagesLoop, interval * 100);
 }
 
 async function messsagesLoop() {
@@ -38,4 +42,4 @@ function displayMessage(message) {
         $("#images").html(imagesElements)
     });
 }
-const sleep = (seconds) =>  new Promise(resolve => setTimeout(resolve, seconds * 100));
+const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 100));
