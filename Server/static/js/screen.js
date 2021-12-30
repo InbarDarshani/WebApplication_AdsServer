@@ -7,47 +7,56 @@ const socket = io(url, {
 });
 
 var messagesFromServer;
-getFromServerJson();
+var templateElements = [];
+var imageElements = [];
+main();
 
-async function getFromServerJson() {
-    const jsonPromise = await fetch("/" + screenNumber + "/data.json");
-    messagesFromServer = await jsonPromise.json();
+async function main() {
+    //Fetch messages info json file
+    const jsonResponse = await fetch("/" + screenNumber + "/data.json");
+    messagesFromServer = await jsonResponse.json();
 
-    //Calc interval out of total messages time
+    //Calc interval out of total messages time in seconds
     let interval = 0;
     for (const message of messagesFromServer) {
         interval += message.visableFor;
     }
 
     //Display messages loop
-    if (messagesFromServer.length !== 0) {
-        messsagesLoop();
-        setInterval(messsagesLoop, interval * 100);
-    }
-    else{
+    if (messagesFromServer.length === 0) {
         $(".header").html("No Messages found for this Screen");
+    }
+    else {
+        //Start loop
+        messsagesLoop();
+        setInterval(messsagesLoop, interval * 1000);
     }
 }
 
 async function messsagesLoop() {
     for (const message of messagesFromServer) {
-        displayMessage(message);
+        await displayMessage(message);
         await sleep(message.visableFor);
     }
 }
 
-function displayMessage(message) {
-    $(".header").hide();
-    $("#template").load(message.template, () => {
-        $("#title").html(message.title);
-        $("#textFields").html(message.textFields);
-
-        var imagesElements = [];
-        for (const imgSrc of message.images) {
-            var img = '<img src="' + imgSrc + '">'
-            imagesElements.push(img);
-        }
-        $("#images").html(imagesElements)
-    });
+async function displayMessage(message) {
+    resetScreen();
+    $("#title").html(message.title);
+    $("#textFields").html(message.textFields);
+    $("#template").append("<div class='lazy' data-loader='ajax' data-src=/data/templates/" + message.template + "></div>");     //Lazy loading not working    
+    for (const imgName of message.images) {
+        $("#images").append("<img class='lazy' data-src=/data/images/" + imgName + "/>");
+    }
+    $('.lazy').Lazy();
 }
-const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 100));
+
+function resetScreen() {
+    $(".header").hide();
+    $("#template").html("");
+    $("#images").empty();
+}
+
+const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
+
+//socket.on("update",)

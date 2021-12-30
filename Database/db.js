@@ -9,29 +9,14 @@ const databaseName = "ads";
 //Models
 var Message;
 var Screen;
-var Client;
+var File;
 
 //Schemas and Data
-var { messagesSchema, screensSchema, clientsSchema } = require("./schemas.js");
-var { messagesData, screensData } = require("./data_init.js");
-var MessagesSchema = new Schema(messagesSchema);
-MessagesSchema.options.toJSON = {
-    transform: (doc, ret) => {
-        delete ret._id;
-    }
-};
-var ScreensSchema = new Schema(screensSchema);
-ScreensSchema.options.toJSON = {
-    transform: (doc, ret) => {
-        delete ret._id;
-    }
-};
-var ClientsSchema = new Schema(clientsSchema);
-ClientsSchema.options.toJSON = {
-    transform: (doc, ret) => {
-        delete ret._id;
-    }
-};
+var { messagesSchema, screensSchema, filesSchema, schemasOptions } = require("./schemas.js");
+var { messagesData, screensData, filesData } = require("./data_init.js");
+var MessagesSchema = new Schema(messagesSchema, schemasOptions);
+var ScreensSchema = new Schema(screensSchema, schemasOptions);
+var FilesSchema = new Schema(filesSchema, schemasOptions);
 
 //DB methods
 exports.connectToDB = async () => {
@@ -39,26 +24,33 @@ exports.connectToDB = async () => {
         await mongoose.connect(connectionURL + databaseName);
         console.log("Connected successfully to db server");
         Message = mongoose.model('Message', MessagesSchema);
-        Screen = mongoose.model('Screen', new Schema(ScreensSchema));
-        Client = mongoose.model('Client', new Schema(ClientsSchema));
-
+        Screen = mongoose.model('Screen', ScreensSchema);
+        File = mongoose.model('File', FilesSchema);
         exports.messages = Message;
         exports.screens = Screen;
-        exports.clients = Client;
+        exports.files = File;
+
+        if ((await mongoose.connection.db.listCollections().toArray()).length === 0)
+            initializeDB();
+
     } catch (error) { console.error(`Something went wrong: ${error}`); }
 }
 
-exports.initializeDB = async () => {
+async function initializeDB() {
     //Add messages data  
     result = await Message.insertMany(messagesData);
-    console.log(`Messages data added:\n ${result}`);
+    console.log("Messages data added");
 
     //Add screens data  
     result = await Screen.insertMany(screensData);
-    console.log(`Screens data added:\n ${result}`);
+    console.log("Screens data added");
+
+    //Add files data  
+    result = await File.insertMany(filesData);
+    console.log("Files data added");
 }
 
-exports.handleScreen = async (screenNumber) => {
+exports.handleScreen = async (screenNumber, active = true) => {
     var exists = await Screen.exists({ screenNumber: screenNumber });
 
     //Create screen
@@ -68,6 +60,11 @@ exports.handleScreen = async (screenNumber) => {
         return [];
     }
 
+    if (!active) {
+        await Screen.findOneAndUpdate({ screenNumber: screenNumber }, { active: false });
+        return;
+    }
+
     //Get screen's messages
     var quary = await Message.find({ screens: screenNumber });
     var data = quary.map(doc => doc.toJSON());
@@ -75,18 +72,5 @@ exports.handleScreen = async (screenNumber) => {
     return data;
 }
 
-exports.handleClient = async (screenNumber, status = "Connected") => {
-    var exists = await Client.exists({ screenNumber: screenNumber });
-
-    //Create client
-    if (!exists) {
-        Client.create({ screenNumber: screenNumber, status: "Connected" });
-        console.log("New Client added");
-        return;
-    }
-
-    //Change existing client's status
-    await Client.findOneAndUpdate({ screenNumber: screenNumber }, { status: status, timeOfLastConnection: new Date() });
-}
 
 

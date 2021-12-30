@@ -1,13 +1,21 @@
 //Database schemes structures module
 
+exports.schemasOptions = {
+    toJSON: {
+        transform: (doc, ret) => {
+            delete ret._id;
+        }
+    },
+    timestamps: true
+};
+
 exports.messagesSchema = {
     messageName: { type: String, required: true, unique: true },
-    dateCreated: { type: Date, default: Date.now, immutable: true },
     screens: [{ type: Number }],
-    template: { type: String, required: true, set: (fileName) => { return "./data/templates/" + fileName }},
+    template: { type: String, required: true },
     title: { type: String, required: true },
     textFields: [{ type: String }],
-    images: [{ type: String, set: (fileName) => { return "./data/images/" + fileName }}],
+    images: [{ type: String }],
     visableFor: { type: Number, required: true },
     visableInTimeFrames: [
         {
@@ -26,14 +34,10 @@ exports.messagesSchema = {
 
 exports.screensSchema = {
     screenNumber: { type: Number, unique: true },
-    dateCreated: { type: Date, default: Date.now, immutable: true },
     active: { type: Boolean, default: true },
-    lastUpdate: { type: Date, default: Date.now }
 };
 
-exports.clientsSchema = {
-    screenNumber: { type: Number, unique: true },
-    status: { type: String, enum: { values: ["Connected", "Disconnected"], message: '{VALUE} is not supported, must be Connected or Disconnected' } },
-    timeOfLastConnection: { type: Date, default: Date.now },
-    timeOfLastDisconnection: { type: Date, default: Date.now }
-};
+exports.filesSchema = {
+    fileName: { type: String, unique: true, required: true },
+    folder: { type: String, required: true, enum: { values: ["images", "templates"] } }
+}

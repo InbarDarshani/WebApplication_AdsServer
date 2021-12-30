@@ -1,5 +1,22 @@
 //Initial data module
 
+exports.filesData = [
+    { fileName: "templateA.html", folder: "templates" },
+    { fileName: "templateB.html", folder: "templates" },
+    { fileName: "templateC.html", folder: "templates" },
+    { fileName: "RedNotice.png", folder: "images" },
+    { fileName: "SpaceJam.png", folder: "images" },
+    { fileName: "TheKarateKid.png", folder: "images" },
+    { fileName: "TheMask.png", folder: "images" },
+    { fileName: "Twilight.png", folder: "images" }
+];
+
+exports.screensData = [
+    { screenNumber: 1 },
+    { screenNumber: 2 },
+    { screenNumber: 3 }
+];
+
 exports.messagesData = [{
     messageName: "message1",
     screens: [1, 2, 3],
@@ -11,7 +28,7 @@ exports.messagesData = [{
         "Dwayne Johnson, Ryan Reynolds and Gal Gadot chase each other around the globe in this fun and funny action adventure."
     ],
     images: ["RedNotice.png"],
-    visableFor: 7,
+    visableFor: 5,
     visableInTimeFrames: [
         {
             weekDays: ["Monday", "Wednesday"],
@@ -30,7 +47,7 @@ exports.messagesData = [{
         "Starring:Kristen Stewart, Robert Pattinson, Billy Burke"
     ],
     images: ["Twilight.png"],
-    visableFor: 18,
+    visableFor: 5,
     visableInTimeFrames: [
         {
             weekDays: ["Tuesday", "Wednesday"],
@@ -52,7 +69,7 @@ exports.messagesData = [{
         "Jim Carrey's wild antics made this slapstick comedy one of the 10 highest-grossing movies of 1994."
     ],
     images: ["TheMask.png"],
-    visableFor: 15,
+    visableFor: 5,
     visableInTimeFrames: [
         {
             weekDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -72,7 +89,7 @@ exports.messagesData = [{
         "Michael Jordan proves his star power off the court with this one -- the film opened at No. 1 at the box office."
     ],
     images: ["SpaceJam.png"],
-    visableFor: 12,
+    visableFor: 5,
     visableInTimeFrames: [
         {
             weekDays: ["Tuesday", "Wednesday"],
@@ -92,7 +109,7 @@ exports.messagesData = [{
         "Jackie Chan teaches a young Jaden Smith the art of kung fu in this installment of the martial arts film series."
     ],
     images: ["TheKarateKid.png"],
-    visableFor: 10,
+    visableFor: 5,
     visableInTimeFrames: [
         {
             weekDays: ["Monday", "Tuesday", "Wednesday"],
@@ -103,8 +120,4 @@ exports.messagesData = [{
 }
 ];
 
-exports.screensData = [
-    { screenNumber: 1 },
-    { screenNumber: 2 },
-    { screenNumber: 3 }
-];
+

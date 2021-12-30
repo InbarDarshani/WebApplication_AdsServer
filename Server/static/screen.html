@@ -18,18 +18,26 @@
     <!--JS-->
     <script src="https://code.jquery.com/jquery-3.6.0.js"
         integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="./static/js/screen.js"></script>
+        
+    <script type="text/javascript" 
+        src="//cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/jquery.lazy.min.js"></script>
+    <script type="text/javascript"
+        src="//cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/plugins/jquery.lazy.ajax.min.js"></script>
+
+    <script defer type="text/javascript" src="./static/js/screen.js"></script>
 
 </head>
 
 <body>
     <h1 class="header">Loading..</h1>
     <div class="container">
-        <div id=template></div>
+        <!-- <div id=template></div> -->
+        <div id="template"></div>
         <div id="message" class="row">
             <h2 id="title"></h2>
             <div id="textFields" class="col-4"></div>
-            <div id="images" class="col-6"></div>
+            <div id="images" class="col-6">
+            </div>
         </div>
     </div>
 </body>
