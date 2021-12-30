@@ -11,7 +11,6 @@ const staticSourcesFolder = path.join(process.cwd(), "Server", "static");       
 const dataFolder = path.join(process.cwd(), "Database", "data");                    //absolute path for data folder
 //Database setup
 const db = require("../Database/db.js");
-const { messagesSchema } = require("../Database/schemas.js");
 
 //___________________________________________________________________________________________
 

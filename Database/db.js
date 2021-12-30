@@ -60,6 +60,7 @@ exports.handleScreen = async (screenNumber, active = true) => {
         return [];
     }
 
+    //Set inactive
     if (!active) {
         await Screen.findOneAndUpdate({ screenNumber: screenNumber }, { active: false });
         return;
