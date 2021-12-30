@@ -61,7 +61,7 @@ app.get("/", async (request, response) => {
 //Main
 main();
 async function main() {
-    await db.connectToDB();
+    await db.connectToDB(); 
     httpServer.listen(port);
     console.log("Waiting for clients");
 }
