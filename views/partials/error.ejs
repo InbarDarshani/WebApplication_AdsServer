@@ -1,0 +1,38 @@
+<head>
+    <title>Ads</title>
+    <!-- Include Jquery 3.5.1 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"
+        integrity="sha512-WNLxfP/8cVYL9sj8Jnp6et0BkubLP31jhTG9vhL/F5uEZmg5wEzKoXp1kJslzPQWwPT1eyMiSxlKCgzHLOTOTQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Include Bootstrap 4.6.1 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
+        integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
+        crossorigin="anonymous"></script>
+
+    <style>
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+        #buttons{
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="errorContent">
+            <h3 class="text-danger">
+                <%= error %>
+            </h3>
+        </div>   
+        <div id="buttons">
+            <a class="btn btn-light" href="javascript:history.back()">Go Back</a>
+            <a class="btn btn-light" href="/">Go To HomePage</a>
+        </div>
+    </div>
+</body>

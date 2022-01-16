@@ -1,0 +1,43 @@
+{
+  "name": "webapplication_adsserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "private": true,
+  "scripts": {
+    "startServer": "node src/app.js ",
+    "test1": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/InbarDarshani/WebApplication_AdsServer.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Inbar"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/InbarDarshani/WebApplication_AdsServer/issues"
+  },
+  "homepage": "https://github.com/InbarDarshani/WebApplication_AdsServer#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.19.1",
+    "ejs": "^3.1.6",
+    "express": "^4.17.2",
+    "fs": "^0.0.1-security",
+    "http": "^0.0.1-security",
+    "http-server": "^14.0.0",
+    "mongoose": "^6.1.5",
+    "mongoose-delete": "^0.5.4",
+    "mongoose-softdelete": "^1.2.0",
+    "multer": "^1.4.4",
+    "path": "^0.12.7",
+    "socket.io": "^4.4.1"
+  },
+  "engines": {
+    "node": ">= 6.0.0",
+    "npm": ">= 3.0.0"
+  }
+}

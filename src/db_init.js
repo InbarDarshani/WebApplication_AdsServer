@@ -12,10 +12,18 @@ exports.filesData = [
 ];
 
 exports.screensData = [
-    { screenNumber: 1 },
-    { screenNumber: 2 },
-    { screenNumber: 3 }
+    { screenNumber: 1, lastConnection: new Date() },
+    { screenNumber: 2, lastConnection: new Date() },
+    { screenNumber: 3, lastConnection: new Date() }
 ];
+
+exports.usersData = [{
+    firstName: "Admin",
+    lastName: "User",
+    username: "admin",
+    password: "Aa123456*"
+}];
+
 
 exports.messagesData = [{
     messageName: "message1",
@@ -31,8 +39,8 @@ exports.messagesData = [{
     visableFor: 5,
     visableInTimeFrames: [
         {
-            weekDays: ["Monday", "Wednesday"],
-            dateRange: { from: "2021/01/01", to: "2021/12/31" },
+            weekDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            dateRange: { from: "2022-01-01", to: "2022-12-31" },
             dayTimeRange: { from: "06:00", to: "12:00" }
         }
     ]
@@ -51,9 +59,7 @@ exports.messagesData = [{
     visableInTimeFrames: [
         {
             weekDays: ["Tuesday", "Wednesday"],
-            dateRange: {
-                from: "March 1, 2021", to: "April 30, 2021"
-            },
+            dateRange: { from: "2022-01-01", to: "2022-04-30" },
             dayTimeRange: { from: "10:00", to: "16:00" }
         }
     ]
@@ -73,7 +79,7 @@ exports.messagesData = [{
     visableInTimeFrames: [
         {
             weekDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-            dateRange: { from: "May 1, 2021", to: "June 15, 2021" },
+            dateRange: { from: "2022-05-01", to: "2022-06-30" },
             dayTimeRange: { from: "08:00", to: "22:00" }
         }
     ]
@@ -93,7 +99,7 @@ exports.messagesData = [{
     visableInTimeFrames: [
         {
             weekDays: ["Tuesday", "Wednesday"],
-            dateRange: { from: "March 29, 2021", to: "April 15, 2021" },
+            dateRange: { from: "2022-04-01", to: "2022-04-30" },
             dayTimeRange: { from: "15:00", to: "19:00" }
         }
     ]
@@ -113,7 +119,7 @@ exports.messagesData = [{
     visableInTimeFrames: [
         {
             weekDays: ["Monday", "Tuesday", "Wednesday"],
-            dateRange: { from: "April 1, 2021", to: "April 30, 2021" },
+            dateRange: { from: "2022-02-01", to: "2022-06-30" },
             dayTimeRange: { from: "01:00", to: "23:00" }
         }
     ]

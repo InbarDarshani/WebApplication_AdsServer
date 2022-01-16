@@ -1,0 +1,21 @@
+<!--Screens details table-->
+<div id="dashboard" class="containter">
+    <h2>Dashboard</h2>
+    <table id="screensTable" data-url="/manager/allScreens.json" data-toggle="table" data-search="true"
+        data-show-refresh="true" data-show-columns="true" data-show-columns-toggle-all="true"
+        data-show-pagination-switch="true" data-show-fullscreen="true" data-show-footer="true" data-detail-view="true"
+        data-detail-view-by-click="true" data-detail-view-icon="false" data-detail-formatter="screenView"
+        data-row-style="rowStyle" data-cache="false">
+        <thead>
+            <tr>
+                <th data-field="screenNumber" data-sortable="true">Screen Number</th>
+                <th data-field="active" data-sortable="true">Active</th>
+                <th data-field="lastConnection" data-sortable="true">Last Connection</th>
+                <th data-field="createdAt" data-sortable="true">Date Created</th>
+                <th data-field="updatedAt" data-sortable="true">Date Updated</th>
+                <th data-field="messagesNames" data-sortable="true">Assigned Messages</th>
+                <th data-field="url" data-formatter="screenUrlFormatter" data-sortable="true">URL</th>
+            </tr>
+        </thead>
+    </table>
+</div>

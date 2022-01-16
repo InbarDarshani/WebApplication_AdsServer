@@ -1,0 +1,33 @@
+
+h2{
+    text-align: center;
+    color:#23527c;
+    margin-top: 20px;
+}
+
+#dashboard, #actions{
+    border: #23527c 3px solid;
+    border-radius: 5px;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+ label{
+    color:#23527c;
+    font-weight: 200;
+}
+
+form .form-group {
+    border: #CCCCCC 1px solid;
+    border-radius: 4px;
+    padding: 10px;  
+}
+
+form{
+    background-color: white;
+    padding: 10px;
+    justify-content: center;
+}
+ 
