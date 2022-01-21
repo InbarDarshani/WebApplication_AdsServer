@@ -1,11 +1,17 @@
-<!--Screens details table-->
-<div id="dashboard" class="containter">
-    <h2>Dashboard</h2>
+<!-- Screens details table -->
+<div class="containter">
+    <h2>Screens Dashboard</h2>
+    <div id="toolbarScreens" class="toolbar">
+        <div class="btn-group">
+            <input id="newScreenNumber" type="number" min=1 placeholder="New screen number" required></input>
+            <button id="addScreen" class="btn btn-light" disabled><i class="far fa-plus-square"></i> Add </button>
+            <p id="newScreenError" class="text-danger" hidden></p>
+        </div>
+    </div>
     <table id="screensTable" data-url="/manager/allScreens.json" data-toggle="table" data-search="true"
         data-show-refresh="true" data-show-columns="true" data-show-columns-toggle-all="true"
         data-show-pagination-switch="true" data-show-fullscreen="true" data-show-footer="true" data-detail-view="true"
-        data-detail-view-by-click="true" data-detail-view-icon="false" data-detail-formatter="screenView"
-        data-row-style="rowStyle" data-cache="false">
+        data-detail-formatter="screenView" data-row-style="rowStyle" data-cache="false" data-toolbar="#toolbarScreens">
         <thead>
             <tr>
                 <th data-field="screenNumber" data-sortable="true">Screen Number</th>
@@ -14,7 +20,9 @@
                 <th data-field="createdAt" data-sortable="true">Date Created</th>
                 <th data-field="updatedAt" data-sortable="true">Date Updated</th>
                 <th data-field="messagesNames" data-sortable="true">Assigned Messages</th>
-                <th data-field="url" data-formatter="screenUrlFormatter" data-sortable="true">URL</th>
+                <th data-field="operateScreens" data-formatter="operateScreensFormatter"
+                    data-events="operateScreensEvents">Operate
+                </th>
             </tr>
         </thead>
     </table>

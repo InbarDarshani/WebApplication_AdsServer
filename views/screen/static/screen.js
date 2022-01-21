@@ -1,15 +1,24 @@
 const screenNumber = window.location.pathname.split("/")[2];
 const url = window.location.origin;
 const params = new URLSearchParams(window.location.search);
-const socket = io(url, {
-    query: {
-        "clientType": "screen",
-        "screenNumber": screenNumber,
-        "connectionType": params.get("connectionType")      
-    }
-});
 
-//---Page setup and styling---
+//--- Socket setup ---
+//Ignore the connection if its only for peeking the screen content 
+if (params.get("connectionType") != "peek") {
+    const socket = io(url, {
+        query: {
+            "clientType": "screen",
+            "screenNumber": screenNumber,
+        }
+    });
+    socket.on('refresh display', () => refresh());
+    socket.on('deleted screen', () => {
+        alert("This screen was turned off by the manager");
+        window.location = '/';
+    });
+}
+
+//--- Page setup and styling ---
 $('#datePicker').datetimepicker({
     format: 'dddd DD/MM/YYYY',
     defaultDate: new Date(),
@@ -18,9 +27,11 @@ $('#datePicker').datetimepicker({
 $("#navbarTitle").html("Screen " + screenNumber);
 $("title").html("Screen " + screenNumber);
 
-//---Message content loading---
+//--- Message content loading ---
 var messagesFromServer = [];
+var htmlTemplates = {};
 var messagesInterval;
+var timeOut;
 var currentDate = new Date();
 var currentWeekDay = currentDate.toLocaleDateString("en-GB", { weekday: 'long' });
 
@@ -29,7 +40,7 @@ $(document).ready(function () {
     $("#setFakeDate").click(function () {
         currentDate = $('#datePicker').data("DateTimePicker").date()._d;
         currentWeekDay = currentDate.toLocaleDateString("en-US", { weekday: 'long' });
-        $("#setFakeDate").prop('disabled', true);      
+        $("#setFakeDate").prop('disabled', true);
         refresh();
     })
 })
@@ -43,7 +54,7 @@ async function refresh() {
 
 async function refreshMessages() {
     //Fetch messages info json file
-    const response = await fetch("/screen/" + screenNumber + "/data.json");
+    var response = await fetch("/screen/" + screenNumber + "/data.json");
     var responseToJson = await response.json();
 
     //filter according to date
@@ -59,9 +70,18 @@ async function refreshMessages() {
         return true;
     })
 
+    //Fetch current messages templates in advance
+    for (m of messagesFromServer) {
+        var response = await fetch("/file/templates/" + m.template);
+        var responseToText = await response.text();
+        //console.log(responseTotext);
+        htmlTemplates["" + m.template] = responseToText;
+    }
+
     //Debug log
-    console.log(responseToJson);
-    console.log(messagesFromServer);
+    //console.log("Messages before filter\n", responseToJson);
+    //console.log("Messages after filter\n", messagesFromServer);
+    //console.log("Templates after filter\n", htmlTemplates);
 }
 
 async function refreshDisplay() {
@@ -98,8 +118,7 @@ async function displayMessage(message) {
     resetScreen();
     $("#title").html(message.title);
     $("#textFields").html(message.textFields);
-    // $("#template").append("<div class='lazy' data-loader='ajax' data-src=/file/templates/" + message.template + "></div>");     //Lazy loading not working    
-    $("#template").load("/file/templates/" + message.template);
+    $("#template").html(htmlTemplates[message.template]);
     for (const imgName of message.images) {
         $("#images").append("<img class='lazy' data-src=/file/images/" + imgName + "/>");
     }
@@ -118,12 +137,12 @@ function resetScreen() {
     $("#timeFrames").empty();
 }
 
-const sleep = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
-
-async function countdown(seconds){
+const sleep = (seconds) => new Promise(resolve => timeOut = setTimeout(resolve, seconds * 1000));
+async function countdown(seconds) {
+    clearTimeout(timeOut);
     $("#countdown-number").html(seconds);
-    for (let i = seconds; i >=0; i--){
+    for (let i = seconds; i >= 0; i--) {
         $("#countdown-number").html(i);
-        await sleep(1.1);
+        await sleep(1);
     }
 }

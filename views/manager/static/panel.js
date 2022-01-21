@@ -1,12 +1,7 @@
 //--- Socket setup ---
 const url = window.location.origin;
-const socket = io(url, {
-    query: {
-        "clientType": "manager"
-    }
-});
-
-//___
+const socket = io(url, { query: { "clientType": "manager" } });
+socket.on('refresh data', () => refresh());
 
 //------ SCREENS DASHBOARD ------
 //--- Bootstrap Table Setup ---
@@ -15,20 +10,31 @@ function rowStyle(row, index) {
     if (row.active == true) return { css: { color: 'green' } }
     else return { css: { color: 'red' } }
 }
-//Url column formatter
-function screenUrlFormatter(value, row, index) {
+//Table operate column formatter
+function operateScreensFormatter(value, row, index) {
     return [
-        '<a id="viewScreen" href="' + url + "/screen/" + row.screenNumber + '/?connectionType=peek" target="_blank">',
-        '<i class="fa fa-eye fa-lg"></i>',
-        '</a>  '
+        '<a class="removeScreenRow" href="javascript:void(0)" title="Remove">',
+        '<i class="fas fa-power-off"></i>',
+        '</a>'
     ].join('');
 }
 //Table row details formatter
 function screenView(index, row) {
     return ('<iframe class="container-fluid" height="400" src="' + url + "/screen/" + row.screenNumber + '/?connectionType=peek"></iframe>');
 }
-
-//___
+//Table operate column event handlers
+window.operateScreensEvents = {
+    'click .removeScreenRow': function (e, value, row, index) {
+        $.ajax({
+            url: '/manager/screenDelete/',
+            type: 'POST',
+            method: "POST",
+            data: { screen: row.screenNumber },
+            error: function (request, status, error) { alert(request.responseText) },
+            success: function () { refresh(); },
+        });
+    }
+}
 
 //------ MESSAGES ACTIONS ------
 //--- Bootstrap Table Setup ---
@@ -38,16 +44,16 @@ function detailFormatter(index, row) {
     $.each(row, function (key, value) {
         if (value == undefined) return;
         if (key == "visableInTimeFrames") {
+            if (value.length == 0)
+                return ('<p><b>timeFrames:</b> Any </p>');
             for (tf of value) {
-                html.push('<p><b>' + 'weekDays' + ':</b> ' + tf.weekDays + '</p>');
-                html.push('<p><b>' + 'dateRange' + ':</b> ' + tf.dateRange.from + ' - ' + tf.dateRange.to + '</p>');
+                html.push('<p>' + '<b>timeFrames:</b> ' + 'weekDays' + ': ' + tf.weekDays);
+                html.push(' dateRange' + ': ' + tf.dateRange.from + ' - ' + tf.dateRange.to + '</p> <br>');
             }
         }
-        else if (key == "images") {
-            for (img of value) {
+        else if (key == "images")
+            for (img of value)
                 html.push('<div><b>' + 'images' + ':</b> ' + "<img width='auto' height='100' src=/file/images/" + img + "/>" + '</div>');
-            }
-        }
         else
             html.push('<p><b>' + key + ':</b> ' + value + '</p>');
     })
@@ -57,6 +63,9 @@ function detailFormatter(index, row) {
 //Table time frames formatter
 function timeFramesFormatter(value, row, index) {
     var html = [];
+    if (value.length == 0) {
+        return ('<p> Any </p>');
+    }
     for (tf of value) {
         html.push('<p>' + 'WeekDays' + ': ' + tf.weekDays + '</p>');
         html.push('<p>' + 'DateRange' + ': ' + tf.dateRange.from + ' - ' + tf.dateRange.to + '</p>');
@@ -78,32 +87,36 @@ function operateFormatter(value, row, index) {
 
 //Table operate column event handlers
 window.operateEvents = {
-    'click .editRow': function (e, value, row, index) { editMessageForm(row); },
-    'click .removeRow': function (e, value, row, index) { deleteMessageForm([row]); }
+    'click .editRow': function (e, value, row, index) { editMessageModal(row); },
+    'click .removeRow': function (e, value, row, index) { deleteMessageModal([row]); }
 }
 
-//Get ids of selected rows in table
-function getIdSelections() {
-    return $.map($("#messagesTable").bootstrapTable('getSelections'), function (row) {
-        return row.messageName;
-    });
+//--- Global Varaiables and functions ---
+var screensNumbers;
+function getScreensNumbers() { screensNumbers = ($("#screensTable").bootstrapTable('getData')).map(s => s.screenNumber); }
+var messagesNames;
+function getMessagesNames() { messagesNames = ($("#messagesTable").bootstrapTable('getData')).map(m => m.messageName); }
+function refresh() {
+    $("#screensTable").bootstrapTable('refresh');
+    $("#messagesTable").bootstrapTable('refresh');
+    console.log("Data Refreshed");
 }
-
 //--- Json Form Setup ---
+
 var jsonFormSchema = {
-    messageName: { type: 'string', title: "Message Name", required: true },
-    screens: { type: 'array', title: "Screens", items: { type: 'number', title: "Screen Number" } },
-    template: { type: 'string', title: "Template", required: true, default: "", enum: ["templateA.html", "templateB.html", "templateC.html"] },
-    title: { type: 'string', title: "Title" },
-    textFields: { type: 'array', title: "Text Fields", items: { type: 'string' } },
+    // screens: { type: 'array', title: "Screens", items: { type: 'number', title: "Screen Number" } },
+    messageName: { required: true, type: 'string', title: "Message Name", description: "Set a unique name for your management" },
+    title: { type: 'string', title: "Title", description: "Set the title appears on the top of the message content" },
+    template: { type: 'string', title: "Template", enum: ["templateA.html", "templateB.html", "templateC.html"] },
+    textFields: { type: 'array', title: "Text Fields", items: { type: 'string' }, description: "Enter the message content" },
     images: { type: 'array', title: "Images", items: { type: 'file' } },
-    visableFor: { type: 'number', title: "Visability time in seconds", required: true },
+    visableFor: { required: true, type: 'integer', title: "Visability time in seconds (5 - 120)", description: "Set how log will the message be displayed in the messages loop, 5 seconds - 2 minutes" },
     visableInTimeFrames: {
-        title: "Time Frames",
+        title: "Time Frames", description: "Construct the time frames of the message visability",
         type: 'array', items: {
             type: 'object', properties: {
-                weekDays: { type: 'array', items: { type: 'string', enum: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] } },
-                dateRange: { type: 'object', properties: { from: { type: 'date' }, to: { type: 'date' } } }
+                weekDays: { type: 'array', title: "WeekDays", items: { type: 'string', enum: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] } },
+                dateRange: { type: 'object', notitle: true, properties: { from: { title: "Starting", type: 'date' }, to: { title: "Ending", type: 'date' } } }
             }
         }
     },
@@ -112,37 +125,87 @@ var jsonFormSettings = [
     "*",
     {
         "type": "actions",
+        "htmlClass": "modal-footer",
         "items": [
             {
                 "type": "submit",
-                "title": "Submit"
+                "title": "Submit",
+                "htmlClass": "btn btn-primary",
             },
             {
                 "type": "button",
                 "title": "Cancel",
-                "onClick": function (evt) { $('.modal').modal('hide'); }
+                "htmlClass": 'btn btn-secondary" data-dismiss="modal"',
+                "onClick": function (event) { $('.modal').modal('hide'); $('form').empty(); }
             }
         ]
     }
 ]
 var jsonFormValues = {}
 
-function validate(values) {
-    var messages = ($("#messagesTable").bootstrapTable('getData')).map(m => m.messageName);
-    if (messages.includes(values.messageName)) {
-        $('#resultAdd').html('<p>Message with this name already exists</p>');
+function jsonFormOnSubmitAdd(errors, values) {
+    //Validate message name is unique 
+    if (messagesNames.includes(values.messageName)) {
+        $('#resultAdd').html('Message with this name already exists');
         return false;
     }
-    return true;
+    if (errors) {
+        $("#resultEdit").html(errors);
+        return false;
+    }
+
+    //Submit form
+    var formData = new FormData($("#addMessageJsonForm")[0]);
+    $.ajax({
+        url: '/manager/messageForm/?method=create',
+        type: 'POST',
+        method: "POST",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        error: function (request, status, error) { $("#resultAdd").html(request.responseText); },
+        success: function () {
+            refresh();
+            $("#addMessageModal").modal('hide');
+            $("#addMessageJsonForm").empty();
+        }
+    });
+}
+
+function jsonFormOnSubmitEdit(errors, values) {
+    if (errors) {
+        $("#resultEdit").html(errors);
+        return false;
+    }
+
+    //Submit form
+    var formData = new FormData($("#editMessageJsonForm")[0]);
+    $.ajax({
+        url: '/manager/messageForm/?method=update',
+        type: 'POST',
+        method: "POST",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        error: function (request, status, error) { $("#resultEdit").html(request.responseText); },
+        success: function () {
+            refresh();
+            $("#editMessageModal").modal('hide');
+            $("#editMessageJsonForm").empty();
+            $("#edit").prop('disabled', true);
+        }
+    });
 }
 
 //--- Modals setup ---
 var tobeDeleted = []
-function deleteMessageForm(rows) {
+function deleteMessageModal(rows) {
     for (r of rows) { tobeDeleted.push(r.messageName); }
-    $('#deleteMessageForm').modal();
+    $('#deleteMessageModal').modal();
 }
-function addMessageForm() {
+function addMessageModal() {
     jsonFormValues = {}
     jsonFormSchema.messageName.readOnly = false;
     //create a json form
@@ -150,38 +213,18 @@ function addMessageForm() {
         schema: jsonFormSchema,
         form: jsonFormSettings,
         value: jsonFormValues,
-        onSubmit: (errors, values) => {
-            if (errors) {
-                console.log(errors);
-                $('#resultAdd').html('<p>I beg your pardon?</p>');
-            }
-            else {
-                if (!validate(values)) return;
-                var formData = new FormData($("#addMessageJsonForm")[0]);
-                $.ajax({
-                    url: '/manager/messageForm/?method=create"',
-                    type: 'POST',
-                    method: "POST",
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function () {
-                        $("#messagesTable").bootstrapTable('refresh');
-                        $("#addMessageForm").modal('hide');
-                        $("#addMessageJsonForm").empty();
-                    },
-                });
-            }
-        }
+        onSubmit: jsonFormOnSubmitAdd
     });
-    $("#jsonform-1-elt-visableFor")[0].min = 5;
+    $("[name=visableFor]")[0].min = 5;
+    $("[name=visableFor]")[0].max = 120;
+
     //open modal
-    $('#addMessageForm').modal();
+    $('#addMessageModal').modal('show');
 }
-function editMessageForm(row) {
+function editMessageModal(row) {
     jsonFormValues = row;
     jsonFormSchema.messageName.readOnly = true;
+
     //format dates to match the editing form
     for (var tf of row.visableInTimeFrames) {
         var from = tf.dateRange.from.split('/').reverse().join('-');
@@ -194,56 +237,95 @@ function editMessageForm(row) {
         schema: jsonFormSchema,
         form: jsonFormSettings,
         value: jsonFormValues,
-        onSubmit: (errors, values) => {
-            if (errors) {
-                console.log(errors);
-                $('#resultEdit').html('<p>I beg your pardon?</p>');
-            }
-            else {
-                var formData = new FormData($("#editMessageJsonForm")[0]);
-                $.ajax({
-                    url: '/manager/messageForm/?method=update',
-                    type: 'POST',
-                    method: "POST",
-                    data: formData,
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    success: function () {
-                        $("#messagesTable").bootstrapTable('refresh');
-                        $("#editMessageForm").modal('hide');
-                        $("#editMessageJsonForm").empty();
-                        $("#edit").prop('disabled', true);
-                    },
-                });
-            }
-        }
+        onSubmit: jsonFormOnSubmitEdit
     });
-    $("#jsonform-1-elt-visableFor")[0].min = 5;
+    $("[name=visableFor]")[0].min = 5;
+    $("[name=visableFor]")[0].max = 120;
+
     //open modal
-    $('#editMessageForm').modal();
+    $('#editMessageModal').modal();
 }
 
-//--- Buttons listeners setup ---
+//--- Bootstrap multiple select setup function ---
+function screensAssignSelection() {
+    var screensOptions = screensNumbers.map(s => { return { label: "Screen " + s, value: s } });
+    $("#screensSelect").multiselect({
+        nonSelectedText: () => "Select Screens",
+        includeSelectAllOption: true,
+        enableResetButton: true,
+    });
+    $("#screensSelect").multiselect('dataprovider', screensOptions);
+}
+
 $(document).ready(function () {
-    $("#messagesTable").on('check.bs.table uncheck.bs.table ' + 'check-all.bs.table uncheck-all.bs.table', function () {
-            var numOfSelected = getIdSelections().length;
-            $("#remove").prop('disabled', !(numOfSelected > 0));
-            $("#edit").prop('disabled', !(numOfSelected == 1));
-        })
+    //Update global varaiables after tables loads
+    //Set multiple select after screen data loads successfuly
+    $("#screensTable").on('load-success.bs.table', function () { getScreensNumbers(); screensAssignSelection(); })
+    $("#messagesTable").on('load-success.bs.table', function () { getMessagesNames(); })
 
-    $("#add").click(function () { addMessageForm(); })
-
-    $("#edit").click(function () {
-        var row = $("#messagesTable").bootstrapTable('getSelections')[0];
-        editMessageForm(row);
+    //--- Buttons listeners setup ---
+    //Add screen button
+    $("#newScreenNumber").change(function () {
+        $("#addScreen").prop('disabled', ($("#newScreenNumber")[0].value == ""));
+        $("#newScreenError").prop('hidden', true);
+    })
+    $("#addScreen").click(function () {
+        var newScreenNumber = $("#newScreenNumber")[0].valueAsNumber;
+        if (screensNumbers.includes(newScreenNumber)) {
+            $("#newScreenError").html("Screen Number is taken!");
+            $("#newScreenError").prop('hidden', false);
+        }
+        else {
+            $.ajax({
+                url: '/screen/' + newScreenNumber,
+                type: 'POST',
+                method: 'POST',
+                error: function (request, status, error) { alert(request.responseText) },
+                success: function () { refresh(); },
+            });
+        }
     })
 
-    $("#remove").click(function () {
+    //Messages table Checkboxes events
+    $("#messagesTable").on('check.bs.table uncheck.bs.table ' + 'check-all.bs.table uncheck-all.bs.table', function () {
+        var numOfSelected = $("#messagesTable").bootstrapTable('getSelections').length;
+        $("#remove").prop('disabled', !(numOfSelected > 0));
+        $("#edit").prop('disabled', !(numOfSelected == 1));
+        $("#screensAssign").prop('disabled', !(numOfSelected > 0));
+    })
+
+    //--- Toolbar Butttons ---
+    //Add message button
+    $("#addMessage").click(function () { addMessageModal(); })
+
+    //Edit message button
+    $("#editMessage").click(function () {
+        var row = $("#messagesTable").bootstrapTable('getSelections')[0];
+        editMessageModal(row);
+    })
+
+    //Remove message button
+    $("#removeMessage").click(function () {
         var rows = $("#messagesTable").bootstrapTable('getSelections');
-        deleteMessageForm(rows);
+        deleteMessageModal(rows);
     });
 
+    //Assign screens button
+    $("#screensAssign").click(function () {
+        var selectedMessagesNames = $("#messagesTable").bootstrapTable('getSelections').map(m => m.messageName);
+        var selectedScreensNumbers = $('#screensSelect option:selected').toArray().map(s => s.value);
+        $.ajax({
+            url: '/manager/assignMessages/',
+            type: 'POST',
+            method: "POST",
+            data: { messages: selectedMessagesNames, screens: selectedScreensNumbers },
+            error: function (request, status, error) { alert(request.responseText) },
+            success: function () { refresh(); }
+        });
+    });
+
+    //--- Modals Butttons ---
+    //Confirm button on message delete modal
     $("#confirmDelete").click(function () {
         $.ajax({
             url: '/manager/messageDelete/',
@@ -251,20 +333,15 @@ $(document).ready(function () {
             method: 'POST',
             data: { "messages": tobeDeleted },
             success: function () {
-                $("#messagesTable").bootstrapTable('refresh');
+                refresh();
                 $("#remove").prop('disabled', true);
-                $("#deleteMessageForm").modal('hide');
+                $("#deleteMessageModal").modal('hide');
             },
         });
     });
-
+    //Cancel button on message delete modal
     $("#cancelDelete").click(function () {
         tobeDeleted = [];
     });
-
-
 });
 
-//___
-
-//TODO: on screen connection

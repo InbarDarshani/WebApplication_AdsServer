@@ -1,13 +1,12 @@
-//Database schemes structures module
-
+//--- Database schemes structures module ---
 //MongoDB setup
 const mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 const mongoose_delete = require('mongoose-delete');
 bcrypt = require('bcrypt');
-SALT_WORK_FACTOR = 10;
+const SALT_WORK_FACTOR = 10;
 
-//---Schemas Structures---
+//--- Schemas Structures ---
 var messageStructure = {
     messageName: { type: String, required: true, unique: true },
     screens: [{ type: Number }],
@@ -22,11 +21,7 @@ var messageStructure = {
             dateRange: {
                 from: { type: Date, transform: d => d.toLocaleDateString() },
                 to: { type: Date, transform: d => d.toLocaleDateString() }
-            },
-            // dayTimeRange: {
-            //     from: { type: String, match: [/([0-1]?\d|2[0-3]):([0-5]?\d):?([0-5]?\d)/, '{VALUE} must match hh:mm or hh:mm:ss'] },
-            //     to: { type: String, match: [/([0-1]?\d|2[0-3]):([0-5]?\d):?([0-5]?\d)/, '{VALUE} must match hh:mm or hh:mm:ss'] },
-            // }
+            }
         }
     ]
 };
@@ -37,24 +32,15 @@ var screenStructure = {
     lastConnection: { type: Date, transform: d => d.toLocaleString() },
 };
 
-var fileStructure = {
-    fileName: { type: String, unique: true, required: true },
-    folder: { type: String, required: true, enum: { values: ["images", "templates"] } }
-}
-
 var userStructure = {
-    firstName: { type: String, unique: true, required: true },
-    lastName: { type: String, unique: true, required: true },
-    fullName: {
-        type: String, default: function () {
-            return this.firstName + " " + this.lastName;
-        }
-    },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    fullName: { type: String, default: function () { return this.firstName + " " + this.lastName; } },
     username: { type: String, required: true, index: { unique: true } },
     password: { type: String, required: true }
 }
 
-//---Schemas Options---
+//--- Schemas Options ---
 var schemasOptions = {
     toJSON: {
         transform: (doc, ret) => {
@@ -68,36 +54,49 @@ var schemasOptions = {
     timestamps: true
 };
 
-//---Mongoos Schemas---
+//--- Mongoos Schemas ---
 var messageSchema = new Schema(messageStructure, schemasOptions);
 var screenSchema = new Schema(screenStructure, schemasOptions);
-var fileSchema = new Schema(fileStructure, schemasOptions);
 var userSchema = new Schema(userStructure, schemasOptions);
 messageSchema.plugin(mongoose_delete, { deletedAt: true, overrideMethods: 'all' });
-screenSchema.plugin(mongoose_delete, { deletedAt: true, overrideMethods: 'all' });
-fileSchema.plugin(mongoose_delete, { deletedAt: true, overrideMethods: 'all' });
 userSchema.plugin(mongoose_delete, { deletedAt: true, overrideMethods: 'all' });
 
-//---User schemas setup---
-userSchema.pre(['save', 'validate', 'update'], async function (next) {
-    // only hash the password if it has been modified (or is new)
-    if (!this.isModified('password')) return next();
-
+//--- User schemas setup ---
+userSchema.pre(['save'], async function (next) {
     try {
+        // only hash the password if it has been modified (or is new)
+        if (!this.isModified('password'))
+            return next();
+
         // generate a salt
         const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
         // hash the password along with our new salt
         // override the cleartext password with the hashed one
         this.password = await bcrypt.hash(this.password, salt);
-        return next();
-    } catch (err) { return next(err); }
+        next();
+    } catch (error) { throw new Error("DB ERROR - cant hash password " + error); }
 });
+userSchema.pre(['update', 'updateOne', 'findOneAndUpdate'], async function (next) {
+    try {
+        var modifiedField = this.getUpdate().$set.password;
+        if (!modifiedField)
+            return next();
+
+        // generate a salt
+        const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+        // hash the password along with our new salt
+        // override the cleartext password with the hashed one
+        this.getUpdate().$set.password = await bcrypt.hash(modifiedField, salt);
+        next();
+    } catch (error) { throw new Error("DB ERROR - cant hash password " + error); }
+})
+
 userSchema.methods.validatePassword = async function (pass) {
-    return bcrypt.compare(pass, this.password);
+    try { return bcrypt.compare(pass, this.password); }
+    catch (error) { throw new Error("DB ERROR - cant authenticate user " + error); }
 };
 
-//---Exports schemas---
+//--- Export schemas ---
 exports.messageSchema = messageSchema;
 exports.screenSchema = screenSchema;
-exports.fileSchema = fileSchema;
 exports.userSchema = userSchema; 

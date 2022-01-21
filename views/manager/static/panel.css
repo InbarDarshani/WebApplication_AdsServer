@@ -5,18 +5,19 @@ h2{
     margin-top: 20px;
 }
 
+ul{
+    margin-left: 10px;
+}
+
 #dashboard, #actions{
-    border: #23527c 3px solid;
-    border-radius: 5px;
     margin-right: 10px;
     margin-left: 10px;
     margin-top: 20px;
     margin-bottom: 20px;
 }
 
- label{
-    color:#23527c;
-    font-weight: 200;
+.toolbar > *{
+    margin-left: 10px;
 }
 
 form .form-group {

@@ -1,20 +1,18 @@
-//Database wrapper module
+//--- Database wrapper module ---
 
 //MongoDB setup
 const mongoose = require('mongoose');
 const connectionURL = "mongodb://127.0.0.1:27017/";
 const databaseName = "ads";
-const mongoose_delete = require('mongoose-delete');
 
 //Models
 var Message;
 var Screen;
-var File;
 var User;
 
 //Schemas and Data
-var { messageSchema, screenSchema, fileSchema, userSchema } = require("./db_schemas");
-var { messagesData, screensData, filesData, usersData } = require("./db_init");
+var { messageSchema, screenSchema, userSchema } = require("./db_schemas");
+var { messagesData, screensData,  usersData } = require("./db_init");
 
 //DB methods
 exports.connectToDB = async () => {
@@ -24,12 +22,10 @@ exports.connectToDB = async () => {
 
         Message = mongoose.model('Message', messageSchema);
         Screen = mongoose.model('Screen', screenSchema);
-        File = mongoose.model('File', fileSchema);          //TODO:Save files in db
         User = mongoose.model('User', userSchema);
 
         exports.messages = Message;
         exports.screens = Screen;
-        exports.files = File;
         exports.users = User;
 
         if ((await mongoose.connection.db.listCollections().toArray()).length === 0)
@@ -47,10 +43,6 @@ async function initializeDB() {
         //Add screens data  
         await Screen.insertMany(screensData);
         console.log("Screens data added");
-
-        //Add files data  
-        await File.insertMany(filesData);
-        console.log("Files data added");
 
         //Add users data  
         await User.insertMany(usersData);
@@ -71,7 +63,7 @@ exports.handleScreen = async (screenNumber, active) => {
     var exists = await Screen.exists({ screenNumber: screenNumber });
 
     //Create screen
-    if (!exists) {
+    if (!exists && active) {
         Screen.create({ screenNumber: screenNumber, lastConnection: new Date() });
         console.log("New Screen added " + screenNumber);
         return [];
@@ -86,14 +78,19 @@ exports.handleScreen = async (screenNumber, active) => {
 }
 
 exports.getScreenData = async (screenNumber) => {
-    //Get screen's messages
-    var query = await Message.find({ screens: screenNumber });
-    var data = query.map(doc => doc.toJSON());
-    return data;
+    try {
+        //Get screen's messages
+        var query = await Message.find({ screens: screenNumber });
+        var data = query.map(doc => doc.toJSON());
+        return data;
+    } catch (error) { throw new Error("DB ERROR - cant get data of screen " + screenNumber + " " + error); }
 }
 
 exports.authenticateUser = async (username, password) => {
-    var user = await User.findOne({ username: username }).exec();
+    try {
+        var user = await User.findOne({ username: username }).exec();
+    } catch (error) { throw new Error("DB ERROR - cant get user" + username + " " + error); }
+
     if (!user)
         throw new Error("User does not exist");
 
@@ -104,39 +101,104 @@ exports.authenticateUser = async (username, password) => {
     return user;
 }
 
-exports.getAllScreens = async () => {
-    var query = await Screen.find({});
-    var data = query.map(doc => doc.toJSON());
+exports.addUser = async (user) => {
+    var exists = await User.exists({ username: user.username });
+    if (exists)
+        throw new Error("Username " + user.username + " already exists");
+    try {
+        var newUser = new User(user);
+        await newUser.save();
+    } catch (error) { throw new Error("DB ERROR - cant add user " + user + " " + error); }
+}
 
-    //Add messages name for each screen
-    for (s of data) {
-        var query2 = await Message.find({ screens: s.screenNumber }).exec();
-        s.messagesNames = query2.map(m => m.messageName);
-    }
-    return data;
+exports.editUser = async (user, updatedUser) => {
+    try {
+        //In case there was no password changing attempt
+        if (updatedUser.password == "")
+            delete updatedUser.password;
+
+        //In case there was username changing attempt
+        if (user.username != updatedUser.username) {
+            var exists = await User.exists({ username: updatedUser.username });
+            if (exists)
+                throw new Error("Username " + updatedUser.username + " already exists");
+        }
+
+        await User.findOneAndUpdate({ username: user.username }, { $set: updatedUser }).exec('update');
+    } catch (error) { throw new Error("DB ERROR - cant edit user " + user + " " + error); }
+}
+
+exports.getAllScreens = async () => {
+    try {
+        var query = await Screen.find({});
+        var data = query.map(doc => doc.toJSON());
+
+        //Add messages name for each screen
+        for (s of data) {
+            var query2 = await Message.find({ screens: s.screenNumber }).exec();
+            s.messagesNames = query2.map(m => m.messageName);
+        }
+        return data;
+    } catch (error) { throw new Error("DB ERROR - cant get screens" + " " + error); }
 }
 
 exports.getAllMessages = async () => {
-    var query = await Message.find({ active: true });
-    var data = query.map(doc => doc.toJSON());
-    return data;
+    try {
+        var query = await Message.find({ active: true });
+        var data = query.map(doc => doc.toJSON());
+        return data;
+    } catch (error) { throw new Error("DB ERROR - cant get messages" + " " + error); }
 }
 
 exports.addMessage = async (message) => {
-    var newMessage = new Message(message);
-    await newMessage.save()
+    try {
+        var newMessage = new Message(message);
+        await newMessage.save();
+    } catch (error) { throw new Error("DB ERROR - cant add message " + message.messageName + " " + error); }
 }
 
 exports.updateMessage = async (message) => {
-    await Message.findOneAndUpdate(message.messageName, message);
+    var messageName = message.messageName;
+    delete message.messageName;
+    try {
+        await Message.findOneAndUpdate({ messageName: messageName }, message);
+    } catch (error) { throw new Error("DB ERROR - cant update message " + message.messageName + " " + error); }
 }
 
 exports.deleteMessages = async (messages) => {
-    if (typeof messages == 'string') {
-        await Message.delete({ messageName: messages }).exec();
-        return;
-    }
-    for (m of messages)
-        await Message.delete({ messageName: m }).exec();               //await Message.findOneAndUpdate(m , { deleted: true });
+    try {
+        //Safe delete one message
+        if (typeof messages == 'string') {
+            await Message.delete({ messageName: messages }).exec();
+            await Message.findOneAndUpdateDeleted({ messageName: messages }, { messageName: messages + "_DELETED" });
+            return;
+        }
+        //Safe delete few message
+        for (m of messages) {
+            await Message.delete({ messageName: m }).exec();
+            await Message.findOneAndUpdateDeleted({ messageName: m }, { messageName: m + "_DELETED" });
+        }
+    } catch (error) { throw new Error("DB ERROR - cant delete message\\s " + messages + " " + error); }
 }
 
+exports.assignScreensToMessages = async (screens, messages) => {
+    try {
+        //Update one message
+        if (typeof messages == 'string') {
+            await Message.findOneAndUpdate({ messageName: messages }, { screens: screens });
+            return;
+        }
+        //Update multiple message
+        for (m of messages)
+            await Message.findOneAndUpdate({ messageName: m }, { screens: screens });
+    } catch (error) { throw new Error("DB ERROR - cant assign screens " + screens + " to messages " + messages + " " + error); }
+}
+
+exports.deleteScreen = async (screen) => {
+    try {
+        //Remove one screen from db
+        await Screen.deleteOne({ screenNumber: screen }).exec();
+        //Remove screen from all messages
+        await Message.updateMany({ screens: screen }, { $pull: { screens: screen } });
+    } catch (error) { throw new Error("DB ERROR - cant delete screen " + screen + " " + error); }
+}

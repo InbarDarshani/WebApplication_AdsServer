@@ -1,15 +1,4 @@
-//Initial data module
-
-exports.filesData = [
-    { fileName: "templateA.html", folder: "templates" },
-    { fileName: "templateB.html", folder: "templates" },
-    { fileName: "templateC.html", folder: "templates" },
-    { fileName: "RedNotice.png", folder: "images" },
-    { fileName: "SpaceJam.png", folder: "images" },
-    { fileName: "TheKarateKid.png", folder: "images" },
-    { fileName: "TheMask.png", folder: "images" },
-    { fileName: "Twilight.png", folder: "images" }
-];
+//--- Initial data module ---
 
 exports.screensData = [
     { screenNumber: 1, lastConnection: new Date() },

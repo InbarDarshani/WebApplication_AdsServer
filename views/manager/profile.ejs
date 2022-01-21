@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Admin</title>
+    <!-- Include Jquery 3.5.1 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"
+        integrity="sha512-WNLxfP/8cVYL9sj8Jnp6et0BkubLP31jhTG9vhL/F5uEZmg5wEzKoXp1kJslzPQWwPT1eyMiSxlKCgzHLOTOTQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Include Bootstrap 4.6.1 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/css/bootstrap.css"
+        integrity="sha512-Ty5JVU2Gi9x9IdqyHN0ykhPakXQuXgGY5ZzmhgZJapf3CpmQgbuhGxmI4tsc8YaXM+kibfrZ+CNX4fur14XNRg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.1/js/bootstrap.js"
+        integrity="sha512-0agUJrbt+sO/RcBuV4fyg3MGYU4ajwq2UJNEx6bX8LJW6/keJfuX+LVarFKfWSMx0m77ZyA0NtDAkHfFMcnPpQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        .container {
+            margin-top: 50px;
+        }
+
+        div {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="text-center">Profile</h2>
+        <form action="/manager/editUser/" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="firstName" class="form-control" value=<%=user.firstName %> >
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="lastName" class="form-control" value=<%=user.lastName %>>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" class="form-control" value=<%=user.username %>>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control" value="" placeholder="**************">
+            </div>
+            <div class="form-group text-center">
+                <button id="submitButton" type="submit" class="btn btn-primary" disabled>Save Changes</button>
+                <button type="button" class="btn btn-light"><a href="/manager/panel/">Back To Panel</a></button>
+            </div>
+        </form>
+        <p class="text-danger">
+            <%= error %>
+        </p>
+    </div>
+</body>
+
+</html>
+
+<script>
+    $(document).ready(function () {
+        $(":input").change(function () {
+            $("#submitButton").prop('disabled', false);
+        });
+
+
+    })
+</script>

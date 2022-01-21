@@ -1,0 +1,47 @@
+<!-- Add Message Form Modal -->
+<div id="addMessageModal" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Message</h2>
+            </div>
+            <div class="modal-body">
+                <form id="addMessageJsonForm" action="/manager/messageForm/?method=create" method="POST"
+                    enctype="multipart/form-data"></form>
+                <p id="resultAdd" class="text-danger"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Message Form Modal -->
+<div id="editMessageModal" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Existing Message</h2>
+            </div>
+            <div class="modal-body">
+                <form id="editMessageJsonForm" action="/manager/messageForm/?method=update" method="POST"
+                    enctype="multipart/form-data"></form>
+                <p id="resultEdit" class="text-danger"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Message Confirmation Modal -->
+<div id="deleteMessageModal" class="modal fade" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Are you sure?</h2>
+            </div>
+            <div class="modal-body">
+                <button id="cancelDelete" type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button id="confirmDelete" type="button" class="btn btn-primary">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+

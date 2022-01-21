@@ -1,19 +1,25 @@
-<!--Messages details table-->
-<div id="actions" class="containter">
-    <h2>Actions</h2>
-    <div id="toolbar">
-        <button id="add" class="btn btn-light">
+<!-- Messages details table -->
+<div class="containter">
+    <h2>Messages Actions</h2>
+    <div id="toolbarMessages" class="toolbar">
+        <button id="addMessage" class="btn btn-light">
             <i class="fa fa-plus-circle"></i> Add </button>
-        <button id="edit" class="btn btn-light" disabled>
+        <button id="editMessage" class="btn btn-light" disabled>
             <i class="fa fa-edit"></i> Edit </button>
-        <button id="remove" class="btn btn-danger" disabled>
+        <button id="removeMessage" class="btn btn-danger" disabled>
             <i class="fa fa-trash"></i> Delete </button>
+        <div class="btn-group">
+            <select id="screensSelect" class="btn btn-light" multiple="multiple"> </select>
+            <button id="screensAssign" class="btn btn-primary" disabled>
+                <i class="fas fa-desktop"></i> Assign </button>
+        </div>
     </div>
     <table id="messagesTable" data-url="/manager/allMessages.json" data-toggle="table" data-search="true"
         data-auto-refresh="false" data-show-refresh="true" data-show-columns="true" data-show-columns-toggle-all="true"
         data-show-pagination-switch="true" data-show-fullscreen="true" data-detail-view="true"
-        data-detail-formatter="detailFormatter" data-toolbar="#toolbar" data-id-field="messageName"
-        data-select-item-name="messageName" data-maintain-meta-data="true" data-unique-id="messageName" data-show-footer="true">
+        data-detail-formatter="detailFormatter" data-toolbar="#toolbarMessages" data-id-field="messageName"
+        data-select-item-name="messageName" data-maintain-meta-data="true" data-unique-id="messageName"
+        data-show-footer="true">
         <thead>
             <tr>
                 <th data-field="state" data-checkbox="true"></th>
@@ -22,7 +28,8 @@
                 <th data-field="template" data-sortable="true">Template</th>
                 <th data-field="title" data-sortable="true">Title</th>
                 <th data-field="visableFor" data-sortable="true">Visable For</th>
-                <th data-field="visableInTimeFrames" data-sortable="true" data-formatter="timeFramesFormatter">Time Frames</th>
+                <th data-field="visableInTimeFrames" data-sortable="true" data-formatter="timeFramesFormatter">Time
+                    Frames</th>
                 <th data-field="createdAt" data-sortable="true">Date Created</th>
                 <th data-field="updatedAt" data-sortable="true">Date Updated</th>
                 <th data-field="operate" data-formatter="operateFormatter" data-events="operateEvents">Operate
@@ -30,55 +37,4 @@
             </tr>
         </thead>
     </table>
-</div>
-
-<!-- Add Message Form Modal -->
-<div id="addMessageForm" class="modal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Create New Message</h2>
-            </div>
-            <div class="modal-body">
-                <div>
-                    <form id="addMessageJsonForm" action="/manager/messageForm/?method=create" method="POST"
-                        enctype="multipart/form-data"></form>
-                    <div id="resultAdd" class="alert"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Message Form Modal -->
-<div id="editMessageForm" class="modal">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Edit Existing Message</h2>
-            </div>
-            <div class="modal-body">
-                <div>
-                    <form id="editMessageJsonForm" action="/manager/messageForm/?method=update" method="POST"
-                        enctype="multipart/form-data"></form>
-                    <div id="resultEdit" class="alert"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Message Confirmation Modal -->
-<div id="deleteMessageForm" class="modal" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Are you sure?</h2>
-            </div>
-            <div class="modal-body">
-                <button id="cancelDelete" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button id="confirmDelete" type="button" class="btn btn-primary">Delete</button>
-            </div>
-        </div>
-    </div>
 </div>

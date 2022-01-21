@@ -15,20 +15,37 @@
         integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
         crossorigin="anonymous"></script>
 
-        <style>
-            div{
-                margin-top: 20px;
-            }
-        </style>
+    <style>
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        div {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            margin-top: 30px;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+    </style>
 </head>
 
 <body class="container">
     <h1>Welcome to Ads system</h1>
-    <div>
-
-        <a class="btn btn-light" href="/manager/panel/">Login As Manager</a>
+    <div class="form-group">
+        <a class="btn btn-light" href="/manager/login/">Login As Admin</a>
     </div>
-    <div id="screenButtons"></div>
+    <div class="form-group">
+        <a class="btn btn-light" href="/manager/register/">Create a new Admin account</a>
+    </div>
+    <div id="screenButtons" class="form-group">
+    </div>
 </body>
 
 </html>
@@ -37,7 +54,7 @@
     $.getJSON('/manager/allScreens.json/', function (data) {
         var buttons = [];
         $.each(data, function (key, val) {
-            buttons.push('<li><a class="btn btn-light" href="/screen/' + val.screenNumber + '">Open Screen ' + val.screenNumber + '</a></li>');
+            buttons.push('<li><a class="btn btn-light fas fa-desktop" href="/screen/' + val.screenNumber + '">Open Screen ' + val.screenNumber + '</a></li>');
         });
         $("<ul/>", {
             html: buttons.join("")
