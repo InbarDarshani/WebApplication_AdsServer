@@ -18,20 +18,24 @@ const db = require("./db");
 
 //Post requests setup
 const multer = require('multer');
-const upload = multer({ dest: path.join(dataFolder, "images") });
+const storage = multer.diskStorage({
+    destination: path.join(dataFolder, "images"),
+    filename: function (req, file, cb) { cb(null, file.originalname.replace(/\s+/g, '')); }
+})
+const upload = multer({ storage: storage });
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 
 //Exspress server setup
-app.set('view engine', 'ejs');                          //templating language
-app.use(bodyParser.urlencoded({ extended: false }));    //for parsing the incoming data
-app.use(bodyParser.json());                             //for parsing the JSON object from POST
+app.use(express.static(publicFolder));                                  //serving public file
+app.set('view engine', 'ejs');                                          //templating language
+app.use(bodyParser.urlencoded({ extended: false }));                    //for parsing the incoming data
+app.use(bodyParser.json());                                             //for parsing the JSON object from POST
 app.use(cookieParser());
-app.use(upload.array());
 app.use(session({ secret: "Your secret key" }));        //TODO: secret key?
 
-//--- Screen \ Manager Socket ---
+//--- Screen \ Manager Sockets ---
 var connectedScreensSockets = {}
 //Function for a client's connection and disconnection
 io.on("connection", (socket) => {
@@ -55,7 +59,7 @@ function screenConnection(screenNumber, socket) {
     socket.join("screens");
     //handle screen in db
     db.handleScreen(screenNumber, true);
-    connectedScreensSockets[""+screenNumber] = socket.id;
+    connectedScreensSockets["" + screenNumber] = socket.id;
     io.to("managers").emit('refresh data');
 }
 function screenDisconnection(screenNumber, socket) {
@@ -71,13 +75,7 @@ function managerDisconnection(socket) { console.log("Manager Client disconnected
 //--- API ---
 //Function to handle root/any
 app.get("/", async (request, response) => { response.sendFile(path.join(viewsFolder, "home.html")); });
-app.get("/:any", async (request, response) => {
-    var pathCheck = path.join(publicFolder, request.params.any);
-    if (fs.existsSync(pathCheck))
-        response.sendFile(pathCheck);
-    else
-        response.sendFile(path.join(viewsFolder, "home.html"));
-});
+
 //Function to handle file requests
 app.get("/file/:type/:filename", (request, response) => {
     if (request.params.type == "templates" || request.params.type == "images")
@@ -94,13 +92,6 @@ app.get("/screen/:screenNumber", async (request, response) => {
         response.render("./screen/screen");
     else
         response.render("./partials/error", { error: "This Screen is already connected elsewhere" });
-});
-//Function to handle new screen on demand
-app.post("/screen/:screenNumber", async (request, response) => {
-    try {
-        await db.handleScreen(request.params.screenNumber);
-        response.sendStatus(200);
-    } catch (error) { response.status(500).send(error.message); }
 });
 //Function to handle screen's messages fetch request - json
 app.get("/screen/:screenNumber/data.json", async (request, response) => {
@@ -120,7 +111,7 @@ app.get("/manager/profile/", (request, response) => {
     else
         response.render("./manager/profile", { error: "", user: request.session.user });
 });
-app.post("/manager/authenticate/", async (request, response) => {
+app.post("/manager/authenticate/", upload.array(), async (request, response) => {
     if (!request.body.username || !request.body.password)
         response.render("./manager/login", { error: "Please enter both username and password" });
 
@@ -146,7 +137,7 @@ app.post("/manager/authenticate/", async (request, response) => {
         } catch (error) { response.render("./manager/register", { error: error.message }); }
     }
 });
-app.post("/manager/editUser/", async (request, response) => {
+app.post("/manager/editUser/", upload.array(), async (request, response) => {
     try {
         await db.editUser(request.session.user, request.body);
         request.session.destroy();
@@ -178,14 +169,39 @@ app.get("/manager/allMessages.json", async (request, response) => {
 });
 
 //--- Messages Actions ---
-app.post("/manager/messageForm/", async (request, response) => {
+app.post("/manager/messageForm/", upload.any(), async (request, response) => {
     try {
+        var message = {};
+        var timeFrames = {};
+
+        //Setup images names
+        if (request.files.length > 0)
+            message.images = request.files.map(f => f.originalname.replace(/\s+/g, ''));
+
+        for (const [key, value] of Object.entries(request.body)) {
+            if (value) {
+                if (key.includes("visableInTimeFrames")) {
+                    var tfIndex = key.split('[')[1].split(']')[0];
+                    var tf = Object.entries(request.body).filter(([k, v]) => { return k.includes("visableInTimeFrames[" + tfIndex + "]") }).map(([k, v]) => ([k.replace(/visableInTimeFrames\[[0-9]+\]\./, ''), v]));
+                    var tfWeekDays = tf.filter(([k, v]) => { return k.includes("weekDays") }).map(([k, v]) => v);
+                    var tfDateRange = Object.fromEntries(tf.filter(([k, v]) => { return k.includes("dateRange") }).map(([k, v]) => ([k.replace(/dateRange\./, ''), v])));
+                    //message.visableInTimeFrames.push({ weekDays: tfWeekDays, dateRange: tfDateRange });
+                    timeFrames[`${tfIndex}`] = { weekDays: tfWeekDays, dateRange: tfDateRange };
+                }
+                else
+                    message[`${key}`] = value;
+            }
+        }
+        message.visableInTimeFrames = Object.values(timeFrames);
+        console.log(timeFrames);
+
         //Receives a message object
-        if (request.query.method == "create")               //TODO: check files!! check timeframes!!
-            await db.addMessage(request.body);
+        if (request.query.method == "create")
+            await db.addMessage(message);
         if (request.query.method == "update")
-            await db.updateMessage(request.body);
-        response.sendStatus(200);   
+            await db.updateMessage(message);
+        response.sendStatus(200);
+        io.to("screens").emit('refresh display');
     } catch (error) { response.status(500).send(error.message); }
 });
 app.post("/manager/messageDelete/", async (request, response) => {
@@ -205,12 +221,18 @@ app.post("/manager/assignMessages/", async (request, response) => {
         io.to("managers").emit('refresh data');
     } catch (error) { response.status(500).send(error.message); }
 });
-
+app.post("/manager/screenAdd/", async (request, response) => {
+    try {
+        await db.addScreen(request.body["screen"]);
+        response.sendStatus(200);
+    } catch (error) { response.status(500).send(error.message); }
+});
 app.post("/manager/screenDelete/", async (request, response) => {
     try {
         await db.deleteScreen(request.body["screen"]);
         response.sendStatus(200);
         io.to(connectedScreensSockets[request.body["screen"]]).emit('deleted screen');
+        io.to("managers").emit('refresh data');
     } catch (error) { response.status(500).send(error.message); }
 });
 

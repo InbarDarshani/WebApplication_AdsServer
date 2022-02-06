@@ -19,8 +19,8 @@ var messageStructure = {
         {
             weekDays: [{ type: String, enum: { values: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], message: '{VALUE} must be a string of weekday' } }],
             dateRange: {
-                from: { type: Date, transform: d => d.toLocaleDateString() },
-                to: { type: Date, transform: d => d.toLocaleDateString() }
+                from: { type: Date, transform: d => { return (d != null ? d.toLocaleDateString() : '') } },
+                to: { type: Date, transform: d => { return (d != null ? d.toLocaleDateString() : '') } }
             }
         }
     ]
@@ -29,7 +29,7 @@ var messageStructure = {
 var screenStructure = {
     screenNumber: { type: Number, unique: true },
     active: { type: Boolean, default: false },
-    lastConnection: { type: Date, transform: d => d.toLocaleString() },
+    lastConnection: { type: Date, default: '', transform: d => { return (d != null ? d.toLocaleString() : '') } },
 };
 
 var userStructure = {

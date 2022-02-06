@@ -12,7 +12,7 @@ var User;
 
 //Schemas and Data
 var { messageSchema, screenSchema, userSchema } = require("./db_schemas");
-var { messagesData, screensData,  usersData } = require("./db_init");
+var { messagesData, screensData, usersData } = require("./db_init");
 
 //DB methods
 exports.connectToDB = async () => {
@@ -183,6 +183,7 @@ exports.deleteMessages = async (messages) => {
 
 exports.assignScreensToMessages = async (screens, messages) => {
     try {
+        if (!screens) screens = [];
         //Update one message
         if (typeof messages == 'string') {
             await Message.findOneAndUpdate({ messageName: messages }, { screens: screens });
@@ -192,6 +193,16 @@ exports.assignScreensToMessages = async (screens, messages) => {
         for (m of messages)
             await Message.findOneAndUpdate({ messageName: m }, { screens: screens });
     } catch (error) { throw new Error("DB ERROR - cant assign screens " + screens + " to messages " + messages + " " + error); }
+}
+
+exports.addScreen = async (screenNumber) => {
+    var exists = await Screen.exists({ screenNumber: screenNumber });
+    if (exists)
+        throw new Error("Screen " + screenNumber + " already exists");
+    try {
+        Screen.create({ screenNumber: screenNumber });
+        console.log("New Screen added " + screenNumber);
+    } catch (error) { throw new Error("DB ERROR - cant add screen " + screenNumber + " " + error); }
 }
 
 exports.deleteScreen = async (screen) => {

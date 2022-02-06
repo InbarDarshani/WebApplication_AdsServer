@@ -15,6 +15,7 @@ if (params.get("connectionType") != "peek") {
     socket.on('deleted screen', () => {
         alert("This screen was turned off by the manager");
         window.location = '/';
+        socket.disconnect();
     });
 }
 
@@ -57,24 +58,38 @@ async function refreshMessages() {
     var response = await fetch("/screen/" + screenNumber + "/data.json");
     var responseToJson = await response.json();
 
-    //filter according to date
+    //Filter messages according to date
     messagesFromServer = responseToJson.filter(function (message) {
+        if (message.visableInTimeFrames.length == 0) return true;
+
+        var flags = [];
         for (tf of message.visableInTimeFrames) {
-            if (!tf.weekDays.includes(currentWeekDay))
-                return false;
+            if (tf.dateRange.from == "" && tf.dateRange.to == "") {
+                flags.push(tf.weekDays.includes(currentWeekDay));
+                continue;
+            }
+
             var from = new Date(tf.dateRange.from.split('/').reverse().join('/'));
             var to = new Date(tf.dateRange.to.split('/').reverse().join('/'));
-            if (!(from <= currentDate && currentDate <= to))
-                return false;
+
+            if (tf.dateRange.from == "") {
+                flags.push(tf.weekDays.includes(currentWeekDay) && currentDate <= to);
+                continue;
+            }
+            if (tf.dateRange.to == "") {
+                flags.push(tf.weekDays.includes(currentWeekDay) && from <= currentDate);
+                continue;
+            }
+
+            flags.push(tf.weekDays.includes(currentWeekDay) && (from <= currentDate && currentDate <= to));
         }
-        return true;
+        return flags.includes(true);
     })
 
     //Fetch current messages templates in advance
     for (m of messagesFromServer) {
         var response = await fetch("/file/templates/" + m.template);
         var responseToText = await response.text();
-        //console.log(responseTotext);
         htmlTemplates["" + m.template] = responseToText;
     }
 
@@ -125,8 +140,12 @@ async function displayMessage(message) {
     $('.lazy').Lazy();
 
     for (const tf of message.visableInTimeFrames) {
-        $("#timeFrames").append("Visable between " + tf.dateRange.from + " to " + tf.dateRange.to)
-            .append(" On weekdays - " + tf.weekDays);
+        $("#timeFrames").append("Visable ");
+        if (tf.dateRange.from != "")
+            $("#timeFrames").append("since " + tf.dateRange.from);
+        if (tf.dateRange.to != "")
+            $("#timeFrames").append(" until " + tf.dateRange.to)
+        $("#timeFrames").append(" On weekdays - " + tf.weekDays + '<br>');
     }
 }
 

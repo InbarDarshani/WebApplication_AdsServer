@@ -51,9 +51,12 @@ function detailFormatter(index, row) {
                 html.push(' dateRange' + ': ' + tf.dateRange.from + ' - ' + tf.dateRange.to + '</p> <br>');
             }
         }
-        else if (key == "images")
+        else if (key == "images") {
+            html.push('<div><b>' + 'images' + ':</b> ');
             for (img of value)
-                html.push('<div><b>' + 'images' + ':</b> ' + "<img width='auto' height='100' src=/file/images/" + img + "/>" + '</div>');
+                html.push("<img width='auto' height='100' src=/file/images/" + img + "/>");
+            html.push('</div>');
+        }
         else
             html.push('<p><b>' + key + ':</b> ' + value + '</p>');
     })
@@ -92,19 +95,19 @@ window.operateEvents = {
 }
 
 //--- Global Varaiables and functions ---
-var screensNumbers;
+var screensNumbers = [];
 function getScreensNumbers() { screensNumbers = ($("#screensTable").bootstrapTable('getData')).map(s => s.screenNumber); }
-var messagesNames;
+var messagesNames = [];
 function getMessagesNames() { messagesNames = ($("#messagesTable").bootstrapTable('getData')).map(m => m.messageName); }
 function refresh() {
     $("#screensTable").bootstrapTable('refresh');
     $("#messagesTable").bootstrapTable('refresh');
     console.log("Data Refreshed");
 }
+
 //--- Json Form Setup ---
 
 var jsonFormSchema = {
-    // screens: { type: 'array', title: "Screens", items: { type: 'number', title: "Screen Number" } },
     messageName: { required: true, type: 'string', title: "Message Name", description: "Set a unique name for your management" },
     title: { type: 'string', title: "Title", description: "Set the title appears on the top of the message content" },
     template: { type: 'string', title: "Template", enum: ["templateA.html", "templateB.html", "templateC.html"] },
@@ -146,7 +149,7 @@ var jsonFormValues = {}
 function jsonFormOnSubmitAdd(errors, values) {
     //Validate message name is unique 
     if (messagesNames.includes(values.messageName)) {
-        $('#resultAdd').html('Message with this name already exists');
+        $("#resultAdd").html('Message with this name already exists');
         return false;
     }
     if (errors) {
@@ -246,21 +249,22 @@ function editMessageModal(row) {
     $('#editMessageModal').modal();
 }
 
-//--- Bootstrap multiple select setup function ---
-function screensAssignSelection() {
-    var screensOptions = screensNumbers.map(s => { return { label: "Screen " + s, value: s } });
-    $("#screensSelect").multiselect({
-        nonSelectedText: () => "Select Screens",
-        includeSelectAllOption: true,
-        enableResetButton: true,
-    });
-    $("#screensSelect").multiselect('dataprovider', screensOptions);
-}
+//--- Bootstrap multiple select setup ---
+$("#screensSelect").multiselect({
+    nonSelectedText: () => "Select Screens",
+    includeSelectAllOption: true,
+    enableResetButton: true,
+});
 
 $(document).ready(function () {
     //Update global varaiables after tables loads
     //Set multiple select after screen data loads successfuly
-    $("#screensTable").on('load-success.bs.table', function () { getScreensNumbers(); screensAssignSelection(); })
+    $("#screensTable").on('load-success.bs.table', function () {
+        getScreensNumbers();
+        //Set screen assign selection options from table
+        var screensOptions = screensNumbers.map(s => { return { label: "Screen " + s, value: s } });
+        $("#screensSelect").multiselect('dataprovider', screensOptions);
+    })
     $("#messagesTable").on('load-success.bs.table', function () { getMessagesNames(); })
 
     //--- Buttons listeners setup ---
@@ -277,9 +281,10 @@ $(document).ready(function () {
         }
         else {
             $.ajax({
-                url: '/screen/' + newScreenNumber,
+                url: '/manager/screenAdd/',
                 type: 'POST',
                 method: 'POST',
+                data: { screen: newScreenNumber },
                 error: function (request, status, error) { alert(request.responseText) },
                 success: function () { refresh(); },
             });
@@ -289,8 +294,8 @@ $(document).ready(function () {
     //Messages table Checkboxes events
     $("#messagesTable").on('check.bs.table uncheck.bs.table ' + 'check-all.bs.table uncheck-all.bs.table', function () {
         var numOfSelected = $("#messagesTable").bootstrapTable('getSelections').length;
-        $("#remove").prop('disabled', !(numOfSelected > 0));
-        $("#edit").prop('disabled', !(numOfSelected == 1));
+        $("#removeMessage").prop('disabled', !(numOfSelected > 0));
+        $("#editMessage").prop('disabled', !(numOfSelected == 1));
         $("#screensAssign").prop('disabled', !(numOfSelected > 0));
     })
 
@@ -320,7 +325,7 @@ $(document).ready(function () {
             method: "POST",
             data: { messages: selectedMessagesNames, screens: selectedScreensNumbers },
             error: function (request, status, error) { alert(request.responseText) },
-            success: function () { refresh(); }
+            success: function () { refresh(); $("#screensAssign").prop('disabled', true); }
         });
     });
 
