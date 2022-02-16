@@ -1,4 +1,4 @@
-//--- Database wrapper module ---
+//--- Database module ---
 
 //MongoDB setup
 const mongoose = require('mongoose');
@@ -31,6 +31,8 @@ exports.connectToDB = async () => {
         if ((await mongoose.connection.db.listCollections().toArray()).length === 0)
             initializeDB();
 
+        initializeScreensStatus();
+
     } catch (error) { console.error(`Something went wrong: ${error}`); }
 }
 
@@ -38,17 +40,21 @@ async function initializeDB() {
     try {
         //Add messages data  
         await Message.insertMany(messagesData);
-        console.log("Messages data added");
+        console.log("Messages initial data added");
 
         //Add screens data  
         await Screen.insertMany(screensData);
-        console.log("Screens data added");
+        console.log("Screens initial data added");
 
         //Add users data  
         await User.insertMany(usersData);
-        console.log("User data added");
+        console.log("Users initial data added");
 
     } catch (error) { console.error(`Something went wrong: ${error}`); }
+}
+
+async function initializeScreensStatus() {
+    await Screen.updateMany({}, { active: false });
 }
 
 exports.isActive = async (screenNumber) => {
@@ -134,7 +140,7 @@ exports.getAllScreens = async () => {
         var data = query.map(doc => doc.toJSON());
 
         //Add messages name for each screen
-        for (s of data) {
+        for (let s of data) {
             var query2 = await Message.find({ screens: s.screenNumber }).exec();
             s.messagesNames = query2.map(m => m.messageName);
         }
@@ -154,6 +160,7 @@ exports.addMessage = async (message) => {
     try {
         var newMessage = new Message(message);
         await newMessage.save();
+        console.log("New Message added " + message.messageName);
     } catch (error) { throw new Error("DB ERROR - cant add message " + message.messageName + " " + error); }
 }
 
@@ -165,20 +172,21 @@ exports.updateMessage = async (message) => {
     } catch (error) { throw new Error("DB ERROR - cant update message " + message.messageName + " " + error); }
 }
 
-exports.deleteMessages = async (messages) => {
+exports.deleteMessages = async (messagesNames) => {
     try {
         //Safe delete one message
-        if (typeof messages == 'string') {
-            await Message.delete({ messageName: messages }).exec();
-            await Message.findOneAndUpdateDeleted({ messageName: messages }, { messageName: messages + "_DELETED" });
+        if (typeof messagesNames == 'string') {
+            await Message.delete({ messageName: messagesNames }).exec();
+            await Message.findOneAndUpdateDeleted({ messageName: messagesNames }, { messageName: messagesNames + "_DELETED" });
+            console.log("Message " + message.messageName + " safely deleted");
             return;
         }
         //Safe delete few message
-        for (m of messages) {
+        for (let m of messagesNames) {
             await Message.delete({ messageName: m }).exec();
             await Message.findOneAndUpdateDeleted({ messageName: m }, { messageName: m + "_DELETED" });
         }
-    } catch (error) { throw new Error("DB ERROR - cant delete message\\s " + messages + " " + error); }
+    } catch (error) { throw new Error("DB ERROR - cant delete message\\s " + messagesNames + " " + error); }
 }
 
 exports.assignScreensToMessages = async (screens, messages) => {
@@ -205,11 +213,12 @@ exports.addScreen = async (screenNumber) => {
     } catch (error) { throw new Error("DB ERROR - cant add screen " + screenNumber + " " + error); }
 }
 
-exports.deleteScreen = async (screen) => {
+exports.deleteScreen = async (screenNumber) => {
     try {
         //Remove one screen from db
-        await Screen.deleteOne({ screenNumber: screen }).exec();
+        await Screen.deleteOne({ screenNumber: screenNumber }).exec();
         //Remove screen from all messages
-        await Message.updateMany({ screens: screen }, { $pull: { screens: screen } });
-    } catch (error) { throw new Error("DB ERROR - cant delete screen " + screen + " " + error); }
+        await Message.updateMany({ screens: screenNumber }, { $pull: { screens: screenNumber } });
+        console.log("Screen " + screenNumber + " completely deleted");
+    } catch (error) { throw new Error("DB ERROR - cant delete screen " + screenNumber + " " + error); }
 }

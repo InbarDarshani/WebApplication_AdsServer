@@ -20,31 +20,25 @@
             margin-top: 50px;
             text-align: center;
         }
-
-        div {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            margin-top: 30px;
-        }
-
-        ul {
-            list-style-type: none;
-        }
     </style>
 </head>
 
 <body class="container">
     <h1>Welcome to Ads system</h1>
-    <div class="form-group">
-        <a class="btn btn-light" href="/manager/login/">Login As Admin</a>
-    </div>
-    <div class="form-group">
-        <a class="btn btn-light" href="/manager/register/">Create a new Admin account</a>
-    </div>
-    <div id="screenButtons" class="form-group">
+    <img src="favicon.ico" />
+    <div class="container">
+        <div class="form-group">
+            <a class="btn btn-primary" href="/manager/login/">Login as Admin</a>
+            <a class="btn btn-primary" href="/manager/register/">Create new Admin account</a>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-toggle="dropdown" aria-expanded="false">
+                Open a screen
+            </button>
+            <div id="screenButtons" class="dropdown-menu" aria-labelledby="dropdownMenuButton"></div>
+        </div>
     </div>
 </body>
 
@@ -54,10 +48,8 @@
     $.getJSON('/manager/allScreens.json/', function (data) {
         var buttons = [];
         $.each(data, function (key, val) {
-            buttons.push('<li><a class="btn btn-light fas fa-desktop" href="/screen/' + val.screenNumber + '">Open Screen ' + val.screenNumber + '</a></li>');
+            buttons.push('<a class="dropdown-item" href="/screen/' + val.screenNumber + '">Screen ' + val.screenNumber + '</a>');
         });
-        $("<ul/>", {
-            html: buttons.join("")
-        }).appendTo("#screenButtons");
+        $("#screenButtons").append(buttons);
     });
 </script>

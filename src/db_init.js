@@ -30,7 +30,6 @@ exports.messagesData = [{
         {
             weekDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
             dateRange: { from: "2022-01-01", to: "2022-12-31" },
-            dayTimeRange: { from: "06:00", to: "12:00" }
         }
     ]
 },
@@ -49,7 +48,6 @@ exports.messagesData = [{
         {
             weekDays: ["Tuesday", "Wednesday"],
             dateRange: { from: "2022-01-01", to: "2022-04-30" },
-            dayTimeRange: { from: "10:00", to: "16:00" }
         }
     ]
 },
@@ -69,7 +67,6 @@ exports.messagesData = [{
         {
             weekDays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
             dateRange: { from: "2022-05-01", to: "2022-06-30" },
-            dayTimeRange: { from: "08:00", to: "22:00" }
         }
     ]
 },
@@ -89,7 +86,6 @@ exports.messagesData = [{
         {
             weekDays: ["Tuesday", "Wednesday"],
             dateRange: { from: "2022-04-01", to: "2022-04-30" },
-            dayTimeRange: { from: "15:00", to: "19:00" }
         }
     ]
 },
@@ -109,7 +105,6 @@ exports.messagesData = [{
         {
             weekDays: ["Monday", "Tuesday", "Wednesday"],
             dateRange: { from: "2022-02-01", to: "2022-06-30" },
-            dayTimeRange: { from: "01:00", to: "23:00" }
         }
     ]
 }

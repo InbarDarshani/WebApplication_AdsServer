@@ -63,7 +63,7 @@ async function refreshMessages() {
         if (message.visableInTimeFrames.length == 0) return true;
 
         var flags = [];
-        for (tf of message.visableInTimeFrames) {
+        for (let tf of message.visableInTimeFrames) {
             if (tf.dateRange.from == "" && tf.dateRange.to == "") {
                 flags.push(tf.weekDays.includes(currentWeekDay));
                 continue;
@@ -87,7 +87,7 @@ async function refreshMessages() {
     })
 
     //Fetch current messages templates in advance
-    for (m of messagesFromServer) {
+    for (let m of messagesFromServer) {
         var response = await fetch("/file/templates/" + m.template);
         var responseToText = await response.text();
         htmlTemplates["" + m.template] = responseToText;

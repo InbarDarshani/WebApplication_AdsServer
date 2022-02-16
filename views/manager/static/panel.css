@@ -9,7 +9,7 @@ ul{
     margin-left: 10px;
 }
 
-#dashboard, #actions{
+#dashboard, #messages{
     margin-right: 10px;
     margin-left: 10px;
     margin-top: 20px;
@@ -20,15 +20,15 @@ ul{
     margin-left: 10px;
 }
 
-form .form-group {
-    border: #CCCCCC 1px solid;
-    border-radius: 4px;
-    padding: 10px;  
-}
 
 form{
     background-color: white;
     padding: 10px;
     justify-content: center;
 }
- 
+
+form .form-group {
+    border: #CCCCCC 1px solid;
+    border-radius: 4px;
+    padding: 10px;  
+}

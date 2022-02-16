@@ -33,7 +33,7 @@ app.set('view engine', 'ejs');                                          //templa
 app.use(bodyParser.urlencoded({ extended: false }));                    //for parsing the incoming data
 app.use(bodyParser.json());                                             //for parsing the JSON object from POST
 app.use(cookieParser());
-app.use(session({ secret: "Your secret key" }));        //TODO: secret key?
+app.use(session({ secret: "Inbar's Ads System" }));
 
 //--- Screen \ Manager Sockets ---
 var connectedScreensSockets = {}
@@ -69,8 +69,14 @@ function screenDisconnection(screenNumber, socket) {
     delete connectedScreensSockets.screenNumber;
     io.to("managers").emit('refresh data');
 }
-function managerConnection(socket) { console.log("Manager Client connected, socket id: " + socket.id); socket.join("managers"); }
-function managerDisconnection(socket) { console.log("Manager Client disconnected, socket id: " + socket.id); }
+function managerConnection(socket) {
+    console.log("Manager Client connected, socket id: " + socket.id);
+    socket.join("managers");
+    io.to("managers").emit('refresh data');
+}
+function managerDisconnection(socket) {
+    console.log("Manager Client disconnected, socket id: " + socket.id);
+}
 
 //--- API ---
 //Function to handle root/any
@@ -180,12 +186,12 @@ app.post("/manager/messageForm/", upload.any(), async (request, response) => {
 
         for (const [key, value] of Object.entries(request.body)) {
             if (value) {
+                //Format time frames
                 if (key.includes("visableInTimeFrames")) {
                     var tfIndex = key.split('[')[1].split(']')[0];
                     var tf = Object.entries(request.body).filter(([k, v]) => { return k.includes("visableInTimeFrames[" + tfIndex + "]") }).map(([k, v]) => ([k.replace(/visableInTimeFrames\[[0-9]+\]\./, ''), v]));
                     var tfWeekDays = tf.filter(([k, v]) => { return k.includes("weekDays") }).map(([k, v]) => v);
                     var tfDateRange = Object.fromEntries(tf.filter(([k, v]) => { return k.includes("dateRange") }).map(([k, v]) => ([k.replace(/dateRange\./, ''), v])));
-                    //message.visableInTimeFrames.push({ weekDays: tfWeekDays, dateRange: tfDateRange });
                     timeFrames[`${tfIndex}`] = { weekDays: tfWeekDays, dateRange: tfDateRange };
                 }
                 else
@@ -193,8 +199,7 @@ app.post("/manager/messageForm/", upload.any(), async (request, response) => {
             }
         }
         message.visableInTimeFrames = Object.values(timeFrames);
-        console.log(timeFrames);
-
+        
         //Receives a message object
         if (request.query.method == "create")
             await db.addMessage(message);
@@ -241,7 +246,8 @@ main();
 async function main() {
     await db.connectToDB();
     httpServer.listen(port);
-    console.log("Waiting for clients");
+
+    console.log("Waiting for clients at http://localhost:" + port + "/");
 }
 
 

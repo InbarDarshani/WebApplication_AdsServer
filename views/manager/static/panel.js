@@ -7,8 +7,10 @@ socket.on('refresh data', () => refresh());
 //--- Bootstrap Table Setup ---
 //Style row according to connection status
 function rowStyle(row, index) {
-    if (row.active == true) return { css: { color: 'green' } }
-    else return { css: { color: 'red' } }
+    if (row.active == true)
+        return { css: { color: 'green' } }
+    else
+        return { css: { color: 'red' } }
 }
 //Table operate column formatter
 function operateScreensFormatter(value, row, index) {
