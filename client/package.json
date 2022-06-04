@@ -3,11 +3,11 @@
   "author": "Inbar Darshani",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "home.html",
   "private": true,
   "license": "ISC",
   "scripts": {
-    "start": "npm --prefix ./client/ start && npm --prefix ./server/ start"
+    "start": "start firefox http://localhost:7000/"
   },
   "engines": {
     "node": ">= 6.0.0",

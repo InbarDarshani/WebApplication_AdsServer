@@ -350,5 +350,6 @@ $(document).ready(function () {
     $("#cancelDelete").click(function () {
         tobeDeleted = [];
     });
+
 });
 

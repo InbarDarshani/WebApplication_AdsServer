@@ -2,19 +2,19 @@
 //Server and Socket setup
 const express = require("express");                                     //Node server using express
 const app = express();
-const port = 8080;
+const port = 7000;
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer);
 
 //Paths setup
 const path = require("path");
 const fs = require('fs');
-const viewsFolder = path.join(process.cwd(), "views");                  //Absolute path for html pages
+const viewsFolder = path.join(process.cwd(), "..", "client");           //Absolute path for html pages
 const publicFolder = path.join(process.cwd(), "public");                //Absolute path for public folder
 const dataFolder = path.join(process.cwd(), "database");                //Absolute path for data files folder
 
 //Database setup
-const db = require("./db");
+const db = require("./src/db");
 
 //Post requests setup
 const multer = require('multer');
@@ -29,6 +29,7 @@ var session = require('express-session');
 
 //Exspress server setup
 app.use(express.static(publicFolder));                                  //serving public file
+app.set('views', viewsFolder);                                          //setting client's views folder
 app.set('view engine', 'ejs');                                          //templating language
 app.use(bodyParser.urlencoded({ extended: false }));                    //for parsing the incoming data
 app.use(bodyParser.json());                                             //for parsing the JSON object from POST
@@ -110,7 +111,7 @@ app.get("/screen/:screenNumber/data.json", async (request, response) => {
 //--- Manager authentication Responses ---
 app.get("/manager/register/", (request, response) => { response.render("./manager/register", { error: "" }); });
 app.get("/manager/login/", (request, response) => { response.render("./manager/login", { error: "" }); });
-app.get("/manager/logout/", (request, response) => { request.session.destroy(); response.sendFile(path.join(viewsFolder, "home.html")); });
+app.get("/manager/logout/", (request, response) => { request.session.destroy(); response.redirect("/"); });
 app.get("/manager/profile/", (request, response) => {
     if (!request.session.user)
         response.redirect("/manager/login");
@@ -199,7 +200,7 @@ app.post("/manager/messageForm/", upload.any(), async (request, response) => {
             }
         }
         message.visableInTimeFrames = Object.values(timeFrames);
-        
+
         //Receives a message object
         if (request.query.method == "create")
             await db.addMessage(message);
@@ -246,7 +247,6 @@ main();
 async function main() {
     await db.connectToDB();
     httpServer.listen(port);
-
     console.log("Waiting for clients at http://localhost:" + port + "/");
 }
 
